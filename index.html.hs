@@ -41,24 +41,38 @@ main = putStrLn $ renderHtml $ do
       adminSidebar
       programListingSection
 
-adminSidebar = do
-  lllogo
-  appTitle
-  robotManager
+adminSidebar =
+  "sidebar" .$ do
+    lllogo
+    appTitle
+    robotManager
 
-lllogo = "Linkbot Labs"
-appTitle = "Pose Teaching"
-robotManager = "Put robots here thx"
+lllogo =
+  img !. "sidebar--logo"
+      ! src "linkbot-labs-ER-logo-200x46px.png"
 
-programListingSection = do
-  programControls
-  programListing
+appTitle =
+  h1 !. "sidebar--title" $ "Pose Teaching"
 
-programControls = "Run the code, or not"
+robotManager =
+  "sidebar--robot-mgr" .$ do
+    "Put robots here thx"
 
-programListing = do
-  pythonBoilerplate
-  codeLines
+programListingSection =
+  section !. "program-listing" $ do
+    programControls
+    programCode
+
+programControls =
+  "program-controls" .$ do
+    "Run the code, or not"
+
+programCode =
+  "program-code" .$ do
+    "program-code--boilerplate" .$
+      pythonBoilerplate
+    "program-code--code" .$
+      codeLines
 
 pythonBoilerplate = "# blah blah"
 codeLines = "robot.move(stuff)"

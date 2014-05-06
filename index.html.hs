@@ -7,7 +7,7 @@ import Data.Monoid (mempty)
 
 import Text.Blaze.Html5
 import qualified Text.Blaze.Html5 as H
-import Text.Blaze.Html5.Attributes
+import Text.Blaze.Html5.Attributes hiding (label, form)
 import qualified Text.Blaze.Html5.Attributes as A
 
 import Text.Blaze.Html.Renderer.Pretty (renderHtml)
@@ -37,6 +37,7 @@ main = putStrLn $ renderHtml $ do
     H.head $ do
       H.title $ "Pose Teaching"
       meta ! httpEquiv "Content-Type" ! content "text/html; charset=utf-8"
+      css "bower_components/bootstrap/dist/css/bootstrap.css"
     body $ do
       adminSidebar
       programListingSection
@@ -55,20 +56,32 @@ appTitle =
   h1 !. "sidebar--title" $ "Pose Teaching"
 
 robotManager =
-  "sidebar--robot-mgr" .$ do
-    "Put robots here thx"
+  form !. "sidebar--robot-mgr form-inline" $ do
+    "form-group" .$ do
+      roboInputLabel
+      roboInput
+    connectBtn
+    roboIndicator
+
+  where
+  roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
+  roboInput = input !. "form-control" ! type_ "text" ! placeholder "Linkbot ID"
+  connectBtn = button !. "form-control" $ "+"
+  roboIndicator = "-"
+
 
 programListingSection =
-  section !. "program-listing" $ do
+  section !. "program-listing container" $ do
     programControls
     programCode
 
 programControls =
   "program-controls" .$ do
-    "Run the code, or not"
+    button "Run"
+    a ! href "#" $ "Clear"
 
 programCode =
-  "program-code" .$ do
+  pre !. "program-code" $ do
     "program-code--boilerplate" .$
       pythonBoilerplate
     "program-code--code" .$

@@ -14,6 +14,9 @@ import Text.Blaze.Html.Renderer.Pretty (renderHtml)
 
 import Angular
 
+import System.IO.Unsafe (unsafePerformIO)
+
+
 elem !. c = elem ! class_ c
 elem !# i = elem ! A.id i
 
@@ -84,8 +87,8 @@ programCode =
   pre !. "program-code" $ do
     "program-code--boilerplate" .$
       pythonBoilerplate
-    "program-code--code" .$
-      codeLines
+    "program-code--code" .! ngFor "pose in poses" $
 
-pythonBoilerplate = "# blah blah"
-codeLines = "robot.move(stuff)"
+pythonBoilerplate = unsafeTmpl "boilerplate.py"
+
+unsafeTmpl = str . ("\n" ++) . unsafePerformIO . readFile

@@ -1,13 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- vim: sw=2
 
-import Prelude hiding (div)
+import Prelude hiding (div, span)
 import qualified Prelude as P
 import Data.Monoid (mempty)
 
 import Text.Blaze.Html5
 import qualified Text.Blaze.Html5 as H
-import Text.Blaze.Html5.Attributes hiding (label, form)
+import Text.Blaze.Html5.Attributes hiding (label, form, span)
 import qualified Text.Blaze.Html5.Attributes as A
 
 import Text.Blaze.Html.Renderer.Pretty (renderHtml)
@@ -61,8 +61,9 @@ lllogo =
 appTitle =
   h1 !. "sidebar--title" $ "Pose Teaching"
 
-robotManager =
-  form !. "sidebar--robot-mgr form-inline" $ do
+robotManager = do
+  activeRobotDisplay
+  robotForm $ do
     "form-group" .$ do
       roboInputLabel
       roboInput
@@ -70,6 +71,10 @@ robotManager =
     roboIndicator
 
   where
+  activeRobotDisplay = "active-robot" .! ngShow "m.roboId !== null" $ do
+    "{{m.roboId}}"
+    span !. "active-robot--status" $ "{{m.roboStatus}}"
+  robotForm = form !. "sidebar--robot-mgr form-inline"
   roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
   roboInput = input ! ngModel "m.robotId" !. "form-control" ! type_ "text" ! placeholder "Linkbot ID"
   connectBtn = button !. "form-control" ! ngClick "connect()" $ "+"

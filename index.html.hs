@@ -71,17 +71,17 @@ robotManager = do
     roboIndicator
 
   where
-  activeRobotDisplay = "active-robot" .! ngShow "m.roboId !== null" $ do
-    "{{m.roboId}}"
+  activeRobotDisplay = "active-robot" .! ngShow "m.robot !== null" $ do
+    "{{m.robot._id}}"
     span !. "active-robot--status" $ "{{m.roboStatus}}"
   robotForm = form !. "sidebar--robot-mgr form-inline"
   roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
   roboInput = input ! ngModel "m.robotIdInput" !. "form-control"
                     ! type_ "text"
                     ! placeholder "Linkbot ID"
-                    ! ngDisabled "m.roboId !== null"
+                    ! ngDisabled "m.robot !== null"
   connectBtn = button !. "form-control" ! ngClick "connect()"
-                      ! ngDisabled "m.roboId !== null" $
+                      ! ngDisabled "m.robot !== null" $
                  "+"
   roboIndicator = "-"
 

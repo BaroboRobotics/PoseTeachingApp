@@ -1,14 +1,14 @@
 actions = ($scope) ->
   $scope.m =
     poses: []
-    roboId: null
+    robot: null
 
   $scope.connect = () ->
     rid = $scope.m.robotIdInput
     try
       robo = Linkbots.connect(rid)
       robo.stop()
-      $scope.m.roboId = robo._id
+      $scope.m.robot = robo
       handleButton = (r,m,e) ->
         $scope.$apply(->
           $scope.m.poses.push r.wheelPositions()

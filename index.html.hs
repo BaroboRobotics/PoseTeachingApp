@@ -112,4 +112,4 @@ pythonBoilerplate = do
   "import barobo"
   "dongle = barobo.Dongle()"
   "dongle.connect()"
-  "linkbot = dongle.getLinkbot('ABCD')"
+  "linkbot = dongle.getLinkbot('{{m.robot._id || 'ABCD' | uppercase}}')"

@@ -70,6 +70,10 @@ Linkbot = (function() {
     return baroboBridge.move(this._id, r1, r2, r3);
   };
 
+  Linkbot.prototype.moveTo = function(r1, r2, r3) {
+    return baroboBridge.moveTo(this._id, r1, r2, r3);
+  };
+
   Linkbot.prototype.wheelPositions = function() {
     return this._wheelPositions = baroboBridge.getMotorAngles(this._id);
   };

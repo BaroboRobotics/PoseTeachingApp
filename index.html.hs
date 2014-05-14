@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- vim: sw=2
 
-import Prelude
+import Prelude hiding (div)
 import qualified Prelude as P
 import Data.Monoid (mempty)
 
@@ -40,8 +40,11 @@ main = putStrLn $ renderHtml $ do
     H.head $ do
       H.title $ "Pose Teaching"
       meta ! httpEquiv "Content-Type" ! content "text/html; charset=utf-8"
+      js "linkbot.js"
+      js "bower_components/angular/angular.js"
+      js "poseTeach.js"
       css "bower_components/bootstrap/dist/css/bootstrap.css"
-    body $ do
+    body ! ngApp "" $ div ! ngController "actions" $ do
       adminSidebar
       programListingSection
 
@@ -68,8 +71,8 @@ robotManager =
 
   where
   roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
-  roboInput = input !. "form-control" ! type_ "text" ! placeholder "Linkbot ID"
-  connectBtn = button !. "form-control" $ "+"
+  roboInput = input ! ngModel "m.robotId" !. "form-control" ! type_ "text" ! placeholder "Linkbot ID"
+  connectBtn = button !. "form-control" ! ngClick "connect()" $ "+"
   roboIndicator = "-"
 
 
@@ -81,13 +84,15 @@ programListingSection =
 programControls =
   "program-controls" .$ do
     button "Run"
-    a ! href "#" $ "Clear"
+    a ! ngClick "clearProgram()" $ "Clear"
 
 programCode =
   pre !. "program-code" $ do
     "program-code--boilerplate" .$
       pythonBoilerplate
-    "program-code--code" .! ngFor "pose in poses" $
+    "program-code--code" .! ngRepeat "pose in m.poses" $ do
+      "# Pose {{$index+1}}"
+      "linkbot.moveTo({{pose[0]}}, {{pose[1]}}, {{pose[2]}})"
 
 pythonBoilerplate = unsafeTmpl "boilerplate.py"
 

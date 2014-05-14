@@ -76,8 +76,13 @@ robotManager = do
     span !. "active-robot--status" $ "{{m.roboStatus}}"
   robotForm = form !. "sidebar--robot-mgr form-inline"
   roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
-  roboInput = input ! ngModel "m.robotId" !. "form-control" ! type_ "text" ! placeholder "Linkbot ID"
-  connectBtn = button !. "form-control" ! ngClick "connect()" $ "+"
+  roboInput = input ! ngModel "m.robotIdInput" !. "form-control"
+                    ! type_ "text"
+                    ! placeholder "Linkbot ID"
+                    ! ngDisabled "m.roboId !== null"
+  connectBtn = button !. "form-control" ! ngClick "connect()"
+                      ! ngDisabled "m.roboId !== null" $
+                 "+"
   roboIndicator = "-"
 
 

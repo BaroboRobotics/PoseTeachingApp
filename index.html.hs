@@ -93,7 +93,7 @@ programListingSection =
 
 programControls =
   "program-controls" .$ do
-    button "Run"
+    button ! ngClick "runProgram()" $ "Run"
     a ! ngClick "clearProgram()" $ "Clear"
 
 programCode =

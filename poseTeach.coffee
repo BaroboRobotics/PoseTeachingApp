@@ -6,6 +6,7 @@ mod.controller('actions', ['$scope', ($scope) ->
     robot: null
     dT: 1
     moveDelay: 0
+    speeds: [90,90,90]
 
   $scope.connect = () ->
     rid = $scope.m.robotIdInput
@@ -33,7 +34,7 @@ mod.controller('actions', ['$scope', ($scope) ->
 
   $scope.runProgram = () ->
     robot = $scope.m.robot
-    return unless robot?
+    return unless robot? and $scope.m.poses.length > 0
 
     destPositions = $scope.m.poses
     # First start position is current position
@@ -50,9 +51,9 @@ mod.controller('actions', ['$scope', ($scope) ->
     allMoves = moves.reduceRight(
       (rest, move) ->
         ->
-          move()
-          setTimeout(rest, ($scope.m.dT + $scope.m.moveDelay) * 1000)
-      -> $scope.m.robot.stop()
+          move.cmd()
+          setTimeout(rest, (move.dT + $scope.m.moveDelay) * 1000)
+      -> robot.stop()
     )
 
     allMoves()
@@ -63,14 +64,20 @@ mod.controller('actions', ['$scope', ($scope) ->
 
   # makeMove: helper function to make a single move.
   #
-  # Speed set so dT (i.e. time taken to make the move) is constant.
+  # Calculate max time (dT) for the whole move.
   # start and dest are both Arrays of wheel positions.
   makeMove = (start, dest) ->
     dXs = zip(((s, d) -> d - s), start, dest)
-    vs = dXs.map((dX) -> Math.abs(dX)/$scope.m.dT)
-    ->
-      $scope.m.robot.angularSpeed(vs...)
-      $scope.m.robot.moveTo(dest...)
+    dT = zip(
+      ((dX, v) -> Math.abs(dX)/v)
+      dXs
+      $scope.m.speeds
+    ).reduce((a, b) -> Math.max(a,b))
+
+    {
+      cmd: -> $scope.m.robot.moveTo(dest...)
+      dT: dT
+    }
 
   # zip: our old friend
   zip = (fn, arrays...) ->

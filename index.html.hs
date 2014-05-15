@@ -113,3 +113,5 @@ pythonBoilerplate = do
   "dongle = barobo.Dongle()"
   "dongle.connect()"
   "linkbot = dongle.getLinkbot('{{m.robot._id || 'ABCD' | uppercase}}')"
+  ""
+  "linkbot.setJointSpeeds({{m.speeds[0]}}, {{m.speeds[1]}}, {{m.speeds[2]}})"

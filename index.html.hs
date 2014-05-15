@@ -44,7 +44,7 @@ main = putStrLn $ renderHtml $ do
       js "bower_components/angular/angular.js"
       js "poseTeach.js"
       css "bower_components/bootstrap/dist/css/bootstrap.css"
-    body ! ngApp "" $ div ! ngController "actions" $ do
+    body ! ngApp "PoseTeaching" $ div ! ngController "actions" $ do
       adminSidebar
       programListingSection
 

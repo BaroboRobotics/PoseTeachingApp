@@ -1,4 +1,6 @@
-actions = ($scope) ->
+mod = angular.module('PoseTeaching', [])
+
+mod.controller('actions', ['$scope', ($scope) ->
   $scope.m =
     poses: []
     robot: null
@@ -79,3 +81,5 @@ actions = ($scope) ->
       for i in [0..len-1]
         fn.apply(null, arrays.map((a) -> a[i]))
     else []
+
+])

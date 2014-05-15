@@ -102,7 +102,7 @@ programCode =
       pythonBoilerplate
     "program-code--code" .! ngRepeat "pose in m.poses" $ do
       "# Pose {{$index+1}}"
-      "linkbot.moveTo({{pose[0]}}, {{pose[1]}}, {{pose[2]}})"
+      "linkbot.moveTo({{pose[0] |number:1}}, {{pose[1] |number:1}}, {{pose[2] |number:1}})"
 
 pythonBoilerplate = do
   "#!/usr/bin/env python"

@@ -84,10 +84,7 @@ robotManager = do
   roboInput = input ! ngModel "m.robotIdInput" !. "form-control"
                     ! type_ "text"
                     ! placeholder "Linkbot ID"
-                    ! ngDisabled "m.robot !== null"
-  connectBtn = button !. "form-control" ! ngClick "connect()"
-                      ! ngDisabled "m.robot !== null" $
-                 "+"
+  connectBtn = button !. "form-control" ! ngClick "connect()" $ "+"
   roboIndicator = "-"
 
 

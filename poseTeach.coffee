@@ -58,7 +58,6 @@ mod.controller('actions', ['$scope', ($scope) ->
             $scope.m.robots.map(
               (r) -> r.wheelPositions().map(oneDecimal)
             )
-
           $scope.m.poses.push positions
         )
 

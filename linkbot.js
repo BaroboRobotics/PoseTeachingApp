@@ -43,8 +43,8 @@ Linkbot = (function() {
     this._wheelPositions = baroboBridge.getMotorAngles(this._id);
     this._firmwareVersion = baroboBridge.firmwareVersion(this._id);
     if (!baroboBridge.mock) {
-      blessedFW = baroboBridge.availableFirmwareVersions()[0];
-      if (blessedFW !== this._firmwareVersion) {
+      blessedFW = baroboBridge.availableFirmwareVersions();
+      if (blessedFW.indexOf(this._firmwareVersion) < 0) {
         idAsURI = encodeURIComponent(this._id);
         this.disconnect();
         document.location = "../LinkbotUpdate/index.html?badRobot=" + idAsURI;

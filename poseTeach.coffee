@@ -33,17 +33,20 @@ mod.directive('modifiable', ->
 mod.controller('actions', ['$scope', ($scope) ->
   $scope.m =
     poses: []
-    robot: null
+    robots: []
     dT: 1
     moveDelay: 0
     speeds: [90,90,90]
 
   $scope.connect = () ->
     rid = $scope.m.robotIdInput
+    $scope.m.robotIdInput = null
+    for r in $scope.m.robots
+      return if rid == r._id
     try
       robo = Linkbots.connect(rid)
       robo.stop()
-      $scope.m.robot = robo
+      $scope.m.robots.push robo
       handleButton = (r,m,e) ->
         $scope.$apply(->
           pos = r.wheelPositions()
@@ -57,7 +60,6 @@ mod.controller('actions', ['$scope', ($scope) ->
         button:
           1: callback: handleButton
       )
-      $scope.m.robotIdInput = null
     catch e
       console.log e
 

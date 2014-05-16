@@ -77,7 +77,7 @@ robotManager = do
   where
   activeRobotDisplay = "active-robot" .! ngShow "m.robots !== []"
                                        ! ngRepeat "robot in m.robots" $ do
-    "{{.robot._id}}"
+    "{{robot._id |uppercase}}"
   robotForm = form !. "sidebar--robot-mgr form-inline"
   roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
   roboInput = input ! ngModel "m.robotIdInput" !. "form-control"

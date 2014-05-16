@@ -65,6 +65,7 @@ mod.controller('actions', ['$scope', ($scope) ->
         button:
           1: callback: handleButton
       )
+      $scope.m.poses = []
     catch e
       console.log e
 

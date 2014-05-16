@@ -6,11 +6,10 @@ mod.directive('modifiable', ->
   template: '''
     <span ng-hide="modifyIt"
           ng-click="modifyIt = modifyIt ? false : true"
-          ng-transclude></span>
-    <input type="{{inputType}}" ng-model="modData"
+          ng-transclude>
+    </span><input type="{{inputType}}" ng-model="modData"
           ng-show="modifyIt"
-          ng-blur="modifyIt = false"
-    </input>
+          ng-blur="modifyIt = false">
     '''
   scope:
     modData: "="

@@ -100,13 +100,18 @@ programControls =
     button ! ngClick "runProgram()" $ "Run"
     a ! ngClick "clearProgram()" $ "Clear"
 
+modNum = modifiable ! customAttribute "number" "true"
+
 programCode =
   pre !. "program-code" $ do
     "program-code--boilerplate" .$
       pythonBoilerplate
     "program-code--code" .! ngRepeat "pose in m.poses" $ do
       "# Pose {{$index+1}}"
-      "linkbot.moveTo({{pose[0] |number:1}}, {{pose[1] |number:1}}, {{pose[2] |number:1}})"
+      "linkbot.moveTo("
+      modNum ! modData "pose[0]" $ "{{pose[0] |number:1}}, "
+      modNum ! modData "pose[1]" $ "{{pose[1] |number:1}}, "
+      modNum ! modData "pose[2]" $ "{{pose[2] |number:1}})"
 
 pythonBoilerplate = do
   "#!/usr/bin/env python"
@@ -118,4 +123,10 @@ pythonBoilerplate = do
   "dongle.connect()"
   "linkbot = dongle.getLinkbot('{{m.robot._id || 'ABCD' | uppercase}}')"
   ""
-  "linkbot.setJointSpeeds({{m.speeds[0]}}, {{m.speeds[1]}}, {{m.speeds[2]}})"
+  "linkbot.setJointSpeeds("
+  modNum ! modData "m.speeds[0]" $ "{{m.speeds[0] |number:1}}"
+  ", "
+  modNum ! modData "m.speeds[1]" $ "{{m.speeds[1] |number:1}}"
+  ", "
+  modNum ! modData "m.speeds[2]" $ "{{m.speeds[2] |number:1}}"
+  ")"

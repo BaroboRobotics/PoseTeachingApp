@@ -34,6 +34,10 @@ val :: String -> AttributeValue
 val = toValue
 -- -
 
+-- For the 'modifiable' directive
+modifiable = elemDirective "modifiable"
+modData = customAttribute "mod-data"
+
 main = putStrLn $ renderHtml $ do
   docType
   html ! lang "en" $ do

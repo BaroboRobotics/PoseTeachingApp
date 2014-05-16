@@ -4,6 +4,7 @@
 import Prelude hiding (div, span)
 import qualified Prelude as P
 import Data.Monoid (mempty)
+import qualified Data.Text as T
 
 import Text.Blaze.Html5
 import qualified Text.Blaze.Html5 as H
@@ -100,8 +101,6 @@ programControls =
     button ! ngClick "runProgram()" $ "Run"
     a ! ngClick "clearProgram()" $ "Clear"
 
-modNum = modifiable ! customAttribute "number" "true"
-
 programCode =
   pre !. "program-code" $ do
     "program-code--boilerplate" .$
@@ -111,9 +110,9 @@ programCode =
       codeLn "# Pose {{$index+1}}"
       codeLn $ do
         "linkbot.moveTo("
-        modNum ! modData "pose[0]" $ "{{pose[0] |number:1}}, "
-        modNum ! modData "pose[1]" $ "{{pose[1] |number:1}}, "
-        modNum ! modData "pose[2]" $ "{{pose[2] |number:1}})"
+        modNum "pose[0]" >> ", "
+        modNum "pose[1]" >> ", "
+        modNum "pose[2]" >> ")"
 
 pythonBoilerplate = mapM_ codeLn
   [ "#!/usr/bin/env python"
@@ -127,12 +126,15 @@ pythonBoilerplate = mapM_ codeLn
   , ""
   , do
     "linkbot.setJointSpeeds("
-    modNum ! modData "m.speeds[0]" $ "{{m.speeds[0] |number:1}}"
-    ", "
-    modNum ! modData "m.speeds[1]" $ "{{m.speeds[1] |number:1}}"
-    ", "
-    modNum ! modData "m.speeds[2]" $ "{{m.speeds[2] |number:1}}"
-    ")"
+    modNum "m.speeds[0]" >> ", "
+    modNum "m.speeds[1]" >> ", "
+    modNum "m.speeds[2]" >> ")"
   ]
 
 codeLn = (>> br)
+
+modNum dataRef =
+  modifiable ! customAttribute "number" "true"
+             ! modData (val dataRef) $
+      span ! A.style "border-bottom: 1px dotted black" $
+        str $ template $ T.pack $ dataRef ++ " |number:1"

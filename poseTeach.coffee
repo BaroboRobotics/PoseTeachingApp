@@ -46,7 +46,11 @@ mod.controller('actions', ['$scope', ($scope) ->
       $scope.m.robot = robo
       handleButton = (r,m,e) ->
         $scope.$apply(->
-          $scope.m.poses.push r.wheelPositions()
+          pos = r.wheelPositions()
+          oneDecimal = (n) ->
+            (Math.round(n * 10) / 10)
+
+          $scope.m.poses.push pos.map(oneDecimal)
         )
 
       robo.register(

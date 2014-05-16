@@ -1,5 +1,35 @@
 mod = angular.module('PoseTeaching', [])
 
+mod.directive('modifiable', ->
+  restrict: 'E'
+  transclude: true
+  template: '''
+    <span ng-hide="modifyIt"
+          ng-click="modifyIt = modifyIt ? false : true"
+          ng-transclude>
+    </span><input type="{{inputType}}" ng-model="modData"
+          ng-show="modifyIt"
+          ng-blur="modifyIt = false">
+    '''
+  scope:
+    modData: "="
+
+  link:
+    pre: (scope, elem, attrs) ->
+      scope.inputType =
+        if attrs.number
+          "number"
+        else
+          "text"
+    post: (scope, elem) ->
+      scope.$watch('modifyIt', (newValue, oldValue) ->
+        if newValue && !oldValue
+          inputElem = elem.children()[1]
+          inputElem.focus()
+          inputElem.select()
+      )
+)
+
 mod.controller('actions', ['$scope', ($scope) ->
   $scope.m =
     poses: []
@@ -35,6 +65,8 @@ mod.controller('actions', ['$scope', ($scope) ->
   $scope.runProgram = () ->
     robot = $scope.m.robot
     return unless robot? and $scope.m.poses.length > 0
+
+    robot.angularSpeed($scope.m.speeds...)
 
     destPositions = $scope.m.poses
     # First start position is current position

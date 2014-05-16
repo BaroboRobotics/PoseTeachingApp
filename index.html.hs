@@ -67,25 +67,23 @@ appTitle =
   h1 !. "sidebar--title" $ "Pose Teaching"
 
 robotManager = do
-  activeRobotDisplay
   robotForm $ do
     "form-group" .$ do
       roboInputLabel
       roboInput
     connectBtn
-    roboIndicator
+  activeRobotDisplay
 
   where
-  activeRobotDisplay = "active-robot" .! ngShow "m.robot !== null" $ do
-    "{{m.robot._id}}"
-    span !. "active-robot--status" $ "{{m.roboStatus}}"
+  activeRobotDisplay = "active-robot" .! ngShow "m.robots !== []"
+                                       ! ngRepeat "robot in m.robots" $ do
+    "{{.robot._id}}"
   robotForm = form !. "sidebar--robot-mgr form-inline"
   roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
   roboInput = input ! ngModel "m.robotIdInput" !. "form-control"
                     ! type_ "text"
                     ! placeholder "Linkbot ID"
   connectBtn = button !. "form-control" ! ngClick "connect()" $ "+"
-  roboIndicator = "-"
 
 
 programListingSection =

@@ -67,6 +67,8 @@ mod.controller('actions', ['$scope', ($scope) ->
     robot = $scope.m.robot
     return unless robot? and $scope.m.poses.length > 0
 
+    robot.angularSpeed($scope.m.speeds...)
+
     destPositions = $scope.m.poses
     # First start position is current position
     startPositions = $scope.m.poses.slice()

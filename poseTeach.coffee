@@ -30,13 +30,17 @@ mod.directive('modifiable', ->
       )
 )
 
+oneDecimal = (n) ->
+  (Math.round(n * 10) / 10)
+
 mod.controller('actions', ['$scope', ($scope) ->
   $scope.m =
     poses: []
     robots: []
     dT: 1
     moveDelay: 0
-    speeds: [90,90,90]
+    defaultSpeeds: [90,90,90]
+    speeds: []
 
   $scope.connect = () ->
     rid = $scope.m.robotIdInput
@@ -47,13 +51,15 @@ mod.controller('actions', ['$scope', ($scope) ->
       robo = Linkbots.connect(rid)
       robo.stop()
       $scope.m.robots.push robo
+      $scope.m.speeds.push $scope.m.defaultSpeeds
       handleButton = (r,m,e) ->
         $scope.$apply(->
-          pos = r.wheelPositions()
-          oneDecimal = (n) ->
-            (Math.round(n * 10) / 10)
+          positions =
+            $scope.m.robots.map(
+              (r) -> r.wheelPositions().map(oneDecimal)
+            )
 
-          $scope.m.poses.push pos.map(oneDecimal)
+          $scope.m.poses.push positions
         )
 
       robo.register(
@@ -106,7 +112,7 @@ mod.controller('actions', ['$scope', ($scope) ->
   # start and dest are both Arrays of wheel positions.
   makeMove = (start, dest) ->
     dXs = zip(((s, d) -> d - s), start, dest)
-    dT = zip(
+    max_dT = zip(
       ((dX, v) -> Math.abs(dX)/v)
       dXs
       $scope.m.speeds
@@ -114,7 +120,7 @@ mod.controller('actions', ['$scope', ($scope) ->
 
     {
       cmd: -> $scope.m.robot.moveTo(dest...)
-      dT: dT
+      dT: max_dT
     }
 
   # zip: our old friend

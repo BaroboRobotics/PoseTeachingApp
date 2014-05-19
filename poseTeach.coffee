@@ -43,6 +43,7 @@ mod.controller('actions', ['$scope', ($scope) ->
     moveDelay: 0
     defaultSpeeds: [90,90,90]
     speeds: []
+    timeout: null
 
   $scope.connect = () ->
     rid = $scope.m.robotIdInput
@@ -72,7 +73,21 @@ mod.controller('actions', ['$scope', ($scope) ->
 
   $scope.stopProgram = () ->
 
-  $scope.runProgram = () ->
+  $scope.toggleRun = () ->
+    if $scope.m.timeout
+      stopProgram()
+    else
+      runProgram()
+
+  ##
+  # Subfunctions for toggleRun: stopProgram() and runProgram()
+  ##
+  stopProgram = () ->
+    clearTimeout($scope.m.timeout)
+    $scope.m.robots.map((r) -> r.stop())
+    $scope.m.timeout = null
+
+  runProgram = () ->
     robots = $scope.m.robots
     return unless robots.length > 0 and $scope.m.poses.length > 0
 
@@ -98,8 +113,9 @@ mod.controller('actions', ['$scope', ($scope) ->
       (rest, move) ->
         ->
           move.cmd()
-          setTimeout(rest, (move.dT + $scope.m.moveDelay) * 1000)
-      -> robots.map((r) -> r.stop())
+          $scope.m.timeout =
+            setTimeout(rest, (move.dT + $scope.m.moveDelay) * 1000)
+      -> $scope.$apply(-> stopProgram())
     )
 
     allMoves()

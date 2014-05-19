@@ -93,7 +93,9 @@ programListingSection =
 
 programControls =
   "program-controls" .$ do
-    button ! ngClick "runProgram()" $ "Run"
+    button ! ngClick "toggleRun()" $ do
+      span ! ngIf "! m.timeout" $ "Run"
+      span ! ngIf "m.timeout" $ "Stop"
     a ! ngClick "clearProgram()" $ "Clear"
 
 programCode =

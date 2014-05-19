@@ -54,7 +54,7 @@ mod.controller('actions', ['$scope', ($scope) ->
       robo = Linkbots.connect(rid)
       robo.stop()
       $scope.m.robots.push robo
-      $scope.m.speeds.push $scope.m.defaultSpeeds
+      $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
       handleButton = (r,m,e) ->
         $scope.$apply(->
           $scope.m.poses.push allRobotWheelPositions()

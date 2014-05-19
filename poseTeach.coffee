@@ -30,10 +30,12 @@ mod.directive('modifiable', ->
       )
 )
 
-oneDecimal = (n) ->
-  (Math.round(n * 10) / 10)
-
 mod.controller('actions', ['$scope', ($scope) ->
+  allRobotWheelPositions = ->
+    $scope.m.robots.map(
+      (r) -> r.wheelPositions().map(oneDecimal)
+    )
+
   $scope.m =
     poses: []
     robots: []
@@ -54,11 +56,7 @@ mod.controller('actions', ['$scope', ($scope) ->
       $scope.m.speeds.push $scope.m.defaultSpeeds
       handleButton = (r,m,e) ->
         $scope.$apply(->
-          positions =
-            $scope.m.robots.map(
-              (r) -> r.wheelPositions().map(oneDecimal)
-            )
-          $scope.m.poses.push positions
+          $scope.m.poses.push allRobotWheelPositions()
         )
 
       robo.register(
@@ -75,15 +73,19 @@ mod.controller('actions', ['$scope', ($scope) ->
   $scope.stopProgram = () ->
 
   $scope.runProgram = () ->
-    robot = $scope.m.robot
-    return unless robot? and $scope.m.poses.length > 0
+    robots = $scope.m.robots
+    return unless robots.length > 0 and $scope.m.poses.length > 0
 
-    robot.angularSpeed($scope.m.speeds...)
+    zip(
+      (r, s) -> r.angularSpeed(s...)
+      robots
+      $scope.m.speeds
+    )
 
     destPositions = $scope.m.poses
     # First start position is current position
     startPositions = $scope.m.poses.slice()
-    startPositions.unshift(robot.wheelPositions())
+    startPositions.unshift(allRobotWheelPositions())
 
     moves = zip(
       makeMove
@@ -97,7 +99,7 @@ mod.controller('actions', ['$scope', ($scope) ->
         ->
           move.cmd()
           setTimeout(rest, (move.dT + $scope.m.moveDelay) * 1000)
-      -> robot.stop()
+      -> robots.map((r) -> r.stop())
     )
 
     allMoves()
@@ -106,31 +108,59 @@ mod.controller('actions', ['$scope', ($scope) ->
   # Sub functions for runProgram:
   ##
 
-  # makeMove: helper function to make a single move.
+  # makeMove
   #
-  # Calculate max time (dT) for the whole move.
-  # start and dest are both Arrays of wheel positions.
-  makeMove = (start, dest) ->
-    dXs = zip(((s, d) -> d - s), start, dest)
-    max_dT = zip(
-      ((dX, v) -> Math.abs(dX)/v)
-      dXs
-      $scope.m.speeds
-    ).reduce((a, b) -> Math.max(a,b))
+  # Returns an obj: a function that will move all robots to the
+  # destination, and the amount of time dT the move takes.
+  #
+  # starts and dests are 2-d arrays keyed by (robot, wheel).
+  makeMove = (starts, dests) ->
 
-    {
-      cmd: -> $scope.m.robot.moveTo(dest...)
-      dT: max_dT
-    }
+    cmd: ->
+      zip(
+        (r, d) -> r.moveTo(d...)
+        $scope.m.robots
+        dests
+      )
+    dT: max_dTs(starts, dests)
 
-  # zip: our old friend
-  zip = (fn, arrays...) ->
-    len = arrays.map((a) -> a.length)
-                .reduce((a, b) -> Math.min(a,b))
-                # .reduce(Math.min) returns NaN as of 2014-05-14....
-    if len > 0
-      for i in [0..len-1]
-        fn.apply(null, arrays.map((a) -> a[i]))
-    else []
+  # max_dTs
+  #
+  # Given an array of starts and dests (same as makeMove), calculated dXs,
+  # then dTs given speeds in the scope, then return max dT.
+  max_dTs = (starts, dests) ->
+    # Given three 1-d arrays, the start, dest, and speed of a single robot,
+    # dT is:
+    dT = (start, dest, speeds) ->
+      zip(((s, d, v) -> Math.abs(d - s)/v), start, dest, speeds)
+
+    dTs = zip(dT, starts, dests, $scope.m.speeds)
+
+    # Now flatten and find the max
+    max_dT = flatten(dTs).reduce((a, b) -> Math.max(a,b))
 
 ])
+
+##
+# General utilities
+##
+
+oneDecimal = (n) ->
+  (Math.round(n * 10) / 10)
+
+# Flatten n levels of a nested array
+flatten = (a, n = 1) ->
+  register = a
+  for i in [1..n]
+    register = [].concat(register...)
+  register
+
+# zip: our old friend
+zip = (fn, arrays...) ->
+  len = arrays.map((a) -> a.length)
+              .reduce((a, b) -> Math.min(a,b))
+              # .reduce(Math.min) returns NaN as of 2014-05-14....
+  if len > 0
+    for i in [0..len-1]
+      fn.apply(null, arrays.map((a) -> a[i]))
+  else []

@@ -82,7 +82,17 @@ mod.controller('actions', ['$scope', ($scope) ->
 
     addPose = (r,m,e) ->
       $scope.$apply(->
-        $scope.m.poses.push allRobotWheelPositions()
+        # Only add if paused
+        if ! $scope.m.moveStatus.timeout
+          # FIXME make this "if $scope.m.moveStatus.stopped()"
+          if $scope.m.moveStatus.index < 0
+            $scope.m.poses.push allRobotWheelPositions()
+          else
+            $scope.m.poses.splice(
+              $scope.m.moveStatus.index + 1
+              0
+              allRobotWheelPositions()
+            )
       )
 
     deletePose = ->
@@ -99,6 +109,10 @@ mod.controller('actions', ['$scope', ($scope) ->
     $scope.m.robots.map((r) -> r.stop())
     $scope.m.moveStatus.timeout = null
     decrementMoveIndex()
+
+  stopProgram = () ->
+    pauseProgram()
+    $scope.m.moveStatus.index = -1
 
   runProgram = () ->
     robots = $scope.m.robots
@@ -128,10 +142,10 @@ mod.controller('actions', ['$scope', ($scope) ->
       if $scope.m.poses.length > 1
         -> move(destPositions)
       else
-        -> pauseProgram()
+        -> stopProgram()
 
     $scope.m.moveStatus.timeout = setTimeout(
-      nextCmd
+      -> $scope.$apply(nextCmd)
       dT * 1000
     )
 

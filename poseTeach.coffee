@@ -63,12 +63,12 @@ mod.controller('actions', ['$scope', ($scope) ->
 
   $scope.toggleRun = () ->
     if $scope.m.moveStatus.timeout
-      stopProgram()
+      pauseProgram()
     else
       runProgram()
 
   ##
-  # Subfunctions for connect: setupRobot()
+  # Subfunctions
   ##
 
   setupRobot = (rid) ->
@@ -93,10 +93,7 @@ mod.controller('actions', ['$scope', ($scope) ->
         2: callback: deletePose
     )
 
-  ##
-  # Subfunctions for toggleRun: stopProgram() and runProgram()
-  ##
-  stopProgram = () ->
+  pauseProgram = () ->
     clearTimeout($scope.m.moveStatus.timeout)
     $scope.m.robots.map((r) -> r.stop())
     $scope.m.moveStatus.timeout = null

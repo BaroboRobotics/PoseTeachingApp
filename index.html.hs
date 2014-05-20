@@ -95,7 +95,7 @@ programControls =
   "program-controls" .$ do
     button ! ngClick "toggleRun()" $ do
       span ! ngIf "! m.moveStatus.timeout" $ "Run"
-      span ! ngIf "m.moveStatus.timeout" $ "Stop"
+      span ! ngIf "m.moveStatus.timeout" $ "Pause"
     a ! ngClick "clearProgram()" $ "Clear"
 
 programCode =

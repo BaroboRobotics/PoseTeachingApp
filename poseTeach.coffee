@@ -76,14 +76,19 @@ mod.controller('actions', ['$scope', ($scope) ->
     robo.stop()
     $scope.m.robots.push robo
     $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
-    handleButton = (r,m,e) ->
+    addPose = (r,m,e) ->
       $scope.$apply(->
         $scope.m.poses.push allRobotWheelPositions()
       )
 
+    toggleRun = ->
+    deletePose = ->
+
     robo.register(
       button:
-        0: callback: handleButton
+        0: callback: addPose
+        1: callback: toggleRun
+        2: callback: deletePose
     )
 
   ##

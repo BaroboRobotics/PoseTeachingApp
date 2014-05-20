@@ -43,7 +43,9 @@ mod.controller('actions', ['$scope', ($scope) ->
     moveDelay: 0
     defaultSpeeds: [90,90,90]
     speeds: []
-    timeout: null
+    moveStatus:
+      timeout: null
+      index: -1
 
   $scope.connect = () ->
     rid = $scope.m.robotIdInput
@@ -60,7 +62,7 @@ mod.controller('actions', ['$scope', ($scope) ->
     $scope.m.poses = []
 
   $scope.toggleRun = () ->
-    if $scope.m.timeout
+    if $scope.m.moveStatus.timeout
       stopProgram()
     else
       runProgram()
@@ -95,9 +97,9 @@ mod.controller('actions', ['$scope', ($scope) ->
   # Subfunctions for toggleRun: stopProgram() and runProgram()
   ##
   stopProgram = () ->
-    clearTimeout($scope.m.timeout)
+    clearTimeout($scope.m.moveStatus.timeout)
     $scope.m.robots.map((r) -> r.stop())
-    $scope.m.timeout = null
+    $scope.m.moveStatus.timeout = null
 
   runProgram = () ->
     robots = $scope.m.robots
@@ -110,14 +112,16 @@ mod.controller('actions', ['$scope', ($scope) ->
     )
 
     destPositions = $scope.m.poses
+    # "slice(0,-1)" means "all but the last element"
+    startPositions = destPositions.slice(0,-1)
     # First start position is current position
-    startPositions = $scope.m.poses.slice()
     startPositions.unshift(allRobotWheelPositions())
 
     moves = zip(
       makeMove
       startPositions
       destPositions
+      [0..startPositions.length - 1]
     )
 
     # Create a matrioshka doll of setTimeouts.
@@ -125,8 +129,9 @@ mod.controller('actions', ['$scope', ($scope) ->
       (rest, move) ->
         ->
           move.cmd()
-          $scope.m.timeout =
+          $scope.m.moveStatus.timeout =
             setTimeout(rest, (move.dT + $scope.m.moveDelay) * 1000)
+          $scope.m.moveStatus.index = move.index
       -> $scope.$apply(-> stopProgram())
     )
 
@@ -139,10 +144,10 @@ mod.controller('actions', ['$scope', ($scope) ->
   # makeMove
   #
   # Returns an obj: a function that will move all robots to the
-  # destination, and the amount of time dT the move takes.
+  # destination, move index, and the amount of time dT the move takes.
   #
   # starts and dests are 2-d arrays keyed by (robot, wheel).
-  makeMove = (starts, dests) ->
+  makeMove = (starts, dests, moveIdx) ->
 
     cmd: ->
       zip(
@@ -150,6 +155,7 @@ mod.controller('actions', ['$scope', ($scope) ->
         $scope.m.robots
         dests
       )
+    index: moveIdx
     dT: max_dTs(starts, dests)
 
   # max_dTs

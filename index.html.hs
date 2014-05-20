@@ -102,26 +102,33 @@ programCode =
   pre !. "program-code" $ do
     "program-code--boilerplate" .$
       pythonBoilerplate
-    "program-code--code" .! ngRepeat "pose in m.poses" $ do
-      codeLn ""
-      codeLn "# Pose {{$index+1}}"
-      div ! ngIf "m.robots.length > 1" $ do
-        div ! ngRepeat "r in m.robots" $ do
-          codeLn $ do
-            "linkbot{{$index+1}}.moveToNB("
-            modNum "pose[$index][0]" >> ", "
-            modNum "pose[$index][1]" >> ", "
-            modNum "pose[$index][2]" >> ")"
-        div ! ngRepeat "r in m.robots" $ do
-          codeLn $ do
-            "linkbot{{$index+1}}.moveWait()"
-      div ! ngIf "m.robots.length == 1" $ do
-        div ! ngRepeat "r in m.robots" $ do
-          codeLn $ do
-            "linkbot{{$index+1}}.moveTo("
-            modNum "pose[$index][0]" >> ", "
-            modNum "pose[$index][1]" >> ", "
-            modNum "pose[$index][2]" >> ")"
+    "program-code--code" .! ngIf "m.poses.length > 0" $ do
+      codeLn "while 1:"
+      div ! ngRepeat "pose in m.poses" $ do
+        codeLn ""
+        codeLn $ do
+          "    # Pose {{$index+1}} "
+          span ! ngIf "m.moveStatus.timeout && $index == m.moveStatus.index" $
+            "<-- moving here"
+          span ! ngIf "! m.moveStatus.timeout && $index == m.moveStatus.index" $
+            " -!- last position"
+        div ! ngIf "m.robots.length > 1" $ do
+          div ! ngRepeat "r in m.robots" $ do
+            codeLn $ do
+              "    linkbot{{$index+1}}.moveToNB("
+              modNum "pose[$index][0]" >> ", "
+              modNum "pose[$index][1]" >> ", "
+              modNum "pose[$index][2]" >> ")"
+          div ! ngRepeat "r in m.robots" $ do
+            codeLn $ do
+              "    linkbot{{$index+1}}.moveWait()"
+        div ! ngIf "m.robots.length == 1" $ do
+          div ! ngRepeat "r in m.robots" $ do
+            codeLn $ do
+              "    linkbot{{$index+1}}.moveTo("
+              modNum "pose[$index][0]" >> ", "
+              modNum "pose[$index][1]" >> ", "
+              modNum "pose[$index][2]" >> ")"
 
 pythonBoilerplate = do
   dongleBoilerplate

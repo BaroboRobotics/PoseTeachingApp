@@ -51,19 +51,7 @@ mod.controller('actions', ['$scope', ($scope) ->
     for r in $scope.m.robots
       return if rid == r._id
     try
-      robo = Linkbots.connect(rid)
-      robo.stop()
-      $scope.m.robots.push robo
-      $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
-      handleButton = (r,m,e) ->
-        $scope.$apply(->
-          $scope.m.poses.push allRobotWheelPositions()
-        )
-
-      robo.register(
-        button:
-          1: callback: handleButton
-      )
+      setupRobot(rid)
       $scope.m.poses = []
     catch e
       console.log e
@@ -76,6 +64,27 @@ mod.controller('actions', ['$scope', ($scope) ->
       stopProgram()
     else
       runProgram()
+
+  ##
+  # Subfunctions for connect: setupRobot()
+  ##
+
+  setupRobot = (rid) ->
+    # connect() may throw, of course, short circuiting the rest of this
+    # function.
+    robo = Linkbots.connect(rid)
+    robo.stop()
+    $scope.m.robots.push robo
+    $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
+    handleButton = (r,m,e) ->
+      $scope.$apply(->
+        $scope.m.poses.push allRobotWheelPositions()
+      )
+
+    robo.register(
+      button:
+        0: callback: handleButton
+    )
 
   ##
   # Subfunctions for toggleRun: stopProgram() and runProgram()

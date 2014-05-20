@@ -71,8 +71,6 @@ mod.controller('actions', ['$scope', ($scope) ->
   $scope.clearProgram = () ->
     $scope.m.poses = []
 
-  $scope.stopProgram = () ->
-
   $scope.toggleRun = () ->
     if $scope.m.timeout
       stopProgram()

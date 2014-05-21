@@ -30,6 +30,28 @@ mod.directive('modifiable', ->
       )
 )
 
+class MoveStatus
+  constructor: (@scope) ->
+    @timeout = null
+    @index = -1
+
+  stop: -> @index = -1
+  running: -> @timeout != null
+  stopped: -> @index == -1
+  pause: ->
+    clearTimeout(@timeout)
+    @timeout = null
+    @decrementIndex()
+  decrementIndex: ->
+    p = @scope.m.poses
+    @index =
+      (@index + p.length - 1) % p.length
+  incrementIndex: ->
+    @index =
+      (@index + 1) % @scope.m.poses.length
+
+
+
 mod.controller('actions', ['$scope', ($scope) ->
   $scope.m =
     poses: []
@@ -38,9 +60,7 @@ mod.controller('actions', ['$scope', ($scope) ->
     moveDelay: 0
     defaultSpeeds: [90,90,90]
     speeds: []
-    moveStatus:
-      timeout: null
-      index: -1
+    moveStatus: new MoveStatus($scope)
 
   $scope.connect = () ->
     rid = $scope.m.robotIdInput
@@ -55,10 +75,10 @@ mod.controller('actions', ['$scope', ($scope) ->
 
   $scope.clearProgram = () ->
     $scope.m.poses = []
-    $scope.m.moveStatus.index = -1
+    $scope.m.moveStatus.stop()
 
   $scope.toggleRun = () ->
-    if $scope.m.moveStatus.timeout
+    if $scope.m.moveStatus.running()
       pauseProgram()
     else
       runProgram()
@@ -81,10 +101,8 @@ mod.controller('actions', ['$scope', ($scope) ->
     $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
 
     addPose = ->
-      # Only add if paused
-      if ! $scope.m.moveStatus.timeout
-        # FIXME make this "if $scope.m.moveStatus.stopped()"
-        if $scope.m.moveStatus.index < 0
+      if ! $scope.m.moveStatus.running()
+        if $scope.m.moveStatus.stopped()
           $scope.m.poses.push allRobotWheelPositions()
         else
           $scope.m.poses.splice(
@@ -94,10 +112,8 @@ mod.controller('actions', ['$scope', ($scope) ->
           )
 
     deletePose = ->
-      # Only remove if paused
-      if ! $scope.m.moveStatus.timeout
-        # FIXME make this "if $scope.m.moveStatus.stopped()"
-        if $scope.m.moveStatus.index < 0
+      if ! $scope.m.moveStatus.running()
+        if $scope.m.moveStatus.stopped()
           $scope.m.poses.pop()
         else
           $scope.m.poses.splice(
@@ -114,14 +130,12 @@ mod.controller('actions', ['$scope', ($scope) ->
     )
 
   pauseProgram = () ->
-    clearTimeout($scope.m.moveStatus.timeout)
+    $scope.m.moveStatus.pause()
     $scope.m.robots.map((r) -> r.stop())
-    $scope.m.moveStatus.timeout = null
-    decrementMoveIndex()
 
   stopProgram = () ->
     pauseProgram()
-    $scope.m.moveStatus.index = -1
+    $scope.m.moveStatus.stop()
 
   runProgram = () ->
     robots = $scope.m.robots
@@ -141,7 +155,7 @@ mod.controller('actions', ['$scope', ($scope) ->
   ##
 
   move = (curPositions) ->
-    idx = incrementMoveIndex()
+    idx = $scope.m.moveStatus.incrementIndex()
     destPositions = $scope.m.poses[idx]
     dT = max_dTs(curPositions, destPositions)
 
@@ -157,16 +171,6 @@ mod.controller('actions', ['$scope', ($scope) ->
       -> $scope.$apply(nextCmd)
       dT * 1000
     )
-
-  incrementMoveIndex = ->
-    $scope.m.moveStatus.index =
-      ($scope.m.moveStatus.index + 1) % $scope.m.poses.length
-
-  decrementMoveIndex = ->
-    s = $scope.m.moveStatus
-    p = $scope.m.poses
-    s.index =
-      (s.index + p.length - 1) % p.length
 
   moveRobots = (destPositions) ->
     zip(

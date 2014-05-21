@@ -96,6 +96,7 @@ programControls =
     button ! ngClick "toggleRun()" $ do
       span ! ngIf "! m.moveStatus.timeout" $ "Run"
       span ! ngIf "m.moveStatus.timeout" $ "Pause"
+    button ! ngClick "m.loop = m.loop ? false : true" $ "Loop?"
     a ! ngClick "clearProgram()" $ "Clear"
 
 programCode =
@@ -103,7 +104,7 @@ programCode =
     "program-code--boilerplate" .$
       pythonBoilerplate
     "program-code--code" .! ngIf "m.poses.length > 0" $ do
-      codeLn "while 1:"
+      codeLn "while True:"
       div ! ngRepeat "pose in m.poses" $ do
         codeLn ""
         codeLn $ do
@@ -129,6 +130,9 @@ programCode =
               modNum "pose[$index][0]" >> ", "
               modNum "pose[$index][1]" >> ", "
               modNum "pose[$index][2]" >> ")"
+      div ! ngIf "! m.loop" $ do
+        codeLn ""
+        codeLn "    break"
 
 pythonBoilerplate = do
   dongleBoilerplate

@@ -56,6 +56,7 @@ class MoveStatus
 
 mod.controller('actions', ['$scope', ($scope) ->
   $scope.m =
+    loop: true
     poses: []
     robots: []
     dT: 1
@@ -165,7 +166,8 @@ mod.controller('actions', ['$scope', ($scope) ->
     moveRobots(destPositions)
 
     nextCmd =
-      if $scope.m.poses.length > 1
+      if $scope.m.poses.length > 1 &&
+            ($scope.m.loop || idx != $scope.m.poses.length - 1)
         -> move(destPositions)
       else
         -> stopProgram()

@@ -10,34 +10,56 @@ import Text.Blaze.Html5
 import qualified Text.Blaze.Html5 as H
 import Text.Blaze.Html5.Attributes hiding (label, form, span)
 import qualified Text.Blaze.Html5.Attributes as A
-
 import Text.Blaze.Html.Renderer.String (renderHtml)
+import qualified Text.Blaze.Internal as Internal
 
+-- The Angular module provides some combinators for using/adding Angular
+-- directives. Source at https://github.com/chreekat/blaze-angular .
 import Angular
 
-import System.IO.Unsafe (unsafePerformIO)
+-- These are some generic Blaze combinators: mostly shortcuts for adding
+-- classes or ids to elements, but also a few other generic shortcuts.
+type HtmlCombr = Html -> Html
 
+(!.), (!#) :: Internal.Attributable h => h-> AttributeValue -> h
+elem !. klass = elem ! class_ klass
+elem !# id_   = elem ! A.id id_
 
-elem !. c = elem ! class_ c
-elem !# i = elem ! A.id i
+(.!) :: AttributeValue -> Attribute -> HtmlCombr
+klass .! attr  = H.div !. klass ! attr
 
+(.$) :: AttributeValue -> HtmlCombr
+klass .$ innerHtml = H.div !. klass $ innerHtml
+
+js, css :: AttributeValue -> Html
 js uri = script ! src uri $ mempty
 css uri = link ! rel "stylesheet" ! href uri
 
-klass .$ innerHtml = H.div !. klass $ innerHtml
-klass .! attr      = H.div !. klass ! attr
 
--- | Coerce that squirrely string literal
-str :: String -> Html
-str = toHtml
-
-val :: String -> AttributeValue
-val = toValue
--- -
-
--- For the 'modifiable' directive
+-- These create an element and attribute for the "modifiable" directive.
+-- See poseTeach.coffee to learn about directives.
+modifiable :: Html -> Html
 modifiable = elemDirective "modifiable"
+
+modData :: AttributeValue -> Attribute
 modData = customAttribute "mod-data"
+
+-- I only use 'modifiable' in one particular way, so I encapsulate that
+-- here:
+modifiableNumber
+  :: String -- ^ The Angular scope variable that will be tracked/modified
+  -> Html
+modifiableNumber dataRef =
+  modifiable ! customAttribute "number" "true"
+             ! modData (toValue dataRef) $
+      span ! A.style "border-bottom: 1px dotted black" $
+        toHtml $ template $ T.pack $ dataRef ++ " |number:1"
+-- ...and then make an easy-to-use synonym
+modNum = modifiableNumber
+
+-- Kind of a hacky way to generate a "code line": just append a <br>
+codeLn :: HtmlCombr
+codeLn = (>> br)
 
 main = putStrLn $ renderHtml $ do
   docType
@@ -49,7 +71,7 @@ main = putStrLn $ renderHtml $ do
       js "bower_components/angular/angular.js"
       js "poseTeach.js"
       css "bower_components/bootstrap/dist/css/bootstrap.css"
-    body ! ngApp "PoseTeaching" $ div ! ngController "actions" $ do
+    body ! ngApp "PoseTeaching" ! ngController "actions" $ do
       adminSidebar
       programListingSection
 
@@ -75,9 +97,8 @@ robotManager = do
   activeRobotDisplay
 
   where
-  activeRobotDisplay = "active-robot" .! ngShow "m.robots !== []"
-                                       ! ngRepeat "robot in m.robots" $ do
-    "{{robot._id |uppercase}}"
+  activeRobotDisplay = "active-robot" .! ngRepeat "robot in m.robots" $ do
+                         "{{robot._id |uppercase}}"
   robotForm = form !. "sidebar--robot-mgr form-inline"
   roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
   roboInput = input ! ngModel "m.robotIdInput" !. "form-control"
@@ -94,8 +115,7 @@ programListingSection =
 programControls =
   "program-controls" .$ do
     button ! ngClick "toggleRun()" $ do
-      span ! ngIf "! m.moveStatus.timeout" $ "Run"
-      span ! ngIf "m.moveStatus.timeout" $ "Pause"
+      "{{ m.moveStatus.running() ? 'Pause' : 'Run' }}"
     button ! ngClick "m.loop = m.loop ? false : true" $ "Loop?"
     a ! ngClick "clearProgram()" $ "Clear"
 
@@ -115,6 +135,7 @@ programCode =
             " -!- last position"
         div ! ngIf "m.robots.length > 1" $ do
           div ! ngRepeat "r in m.robots" $ do
+            -- Generates e.g. "linkbot1.moveToNB(80.2, 28.9, 91.3)"
             codeLn $ do
               "    linkbot{{$index+1}}.moveToNB("
               modNum "pose[$index][0]" >> ", "
@@ -163,11 +184,3 @@ setSpeeds = do
       modNum "m.speeds[$index][1]" >> ", "
       modNum "m.speeds[$index][2]" >> ")"
   codeLn ""
-
-codeLn = (>> br)
-
-modNum dataRef =
-  modifiable ! customAttribute "number" "true"
-             ! modData (val dataRef) $
-      span ! A.style "border-bottom: 1px dotted black" $
-        str $ template $ T.pack $ dataRef ++ " |number:1"

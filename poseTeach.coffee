@@ -94,12 +94,23 @@ mod.controller('actions', ['$scope', ($scope) ->
           )
 
     deletePose = ->
+      # Only remove if paused
+      if ! $scope.m.moveStatus.timeout
+        # FIXME make this "if $scope.m.moveStatus.stopped()"
+        if $scope.m.moveStatus.index < 0
+          $scope.m.poses.pop()
+        else
+          $scope.m.poses.splice(
+            $scope.m.moveStatus.index
+            1
+          )
+
 
     robo.register(
       button:
         0: callback: -> $scope.$apply(-> addPose())
         1: callback: -> $scope.$apply(-> $scope.toggleRun())
-        2: callback: deletePose
+        2: callback: -> $scope.$apply(-> deletePose())
     )
 
   pauseProgram = () ->

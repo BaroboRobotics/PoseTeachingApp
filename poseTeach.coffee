@@ -31,11 +31,6 @@ mod.directive('modifiable', ->
 )
 
 mod.controller('actions', ['$scope', ($scope) ->
-  allRobotWheelPositions = ->
-    $scope.m.robots.map(
-      (r) -> r.wheelPositions().map(oneDecimal)
-    )
-
   $scope.m =
     poses: []
     robots: []
@@ -43,7 +38,9 @@ mod.controller('actions', ['$scope', ($scope) ->
     moveDelay: 0
     defaultSpeeds: [90,90,90]
     speeds: []
-    timeout: null
+    moveStatus:
+      timeout: null
+      index: -1
 
   $scope.connect = () ->
     rid = $scope.m.robotIdInput
@@ -51,39 +48,80 @@ mod.controller('actions', ['$scope', ($scope) ->
     for r in $scope.m.robots
       return if rid == r._id
     try
-      robo = Linkbots.connect(rid)
-      robo.stop()
-      $scope.m.robots.push robo
-      $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
-      handleButton = (r,m,e) ->
-        $scope.$apply(->
-          $scope.m.poses.push allRobotWheelPositions()
-        )
-
-      robo.register(
-        button:
-          1: callback: handleButton
-      )
+      setupRobot(rid)
       $scope.m.poses = []
     catch e
       console.log e
 
   $scope.clearProgram = () ->
     $scope.m.poses = []
+    $scope.m.moveStatus.index = -1
 
   $scope.toggleRun = () ->
-    if $scope.m.timeout
-      stopProgram()
+    if $scope.m.moveStatus.timeout
+      pauseProgram()
     else
       runProgram()
 
   ##
-  # Subfunctions for toggleRun: stopProgram() and runProgram()
+  # Subfunctions
   ##
-  stopProgram = () ->
-    clearTimeout($scope.m.timeout)
+
+  allRobotWheelPositions = ->
+    $scope.m.robots.map(
+      (r) -> r.wheelPositions().map(oneDecimal)
+    )
+
+  setupRobot = (rid) ->
+    # connect() may throw, of course, short circuiting the rest of this
+    # function.
+    robo = Linkbots.connect(rid)
+    robo.stop()
+    $scope.m.robots.push robo
+    $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
+
+    addPose = ->
+      # Only add if paused
+      if ! $scope.m.moveStatus.timeout
+        # FIXME make this "if $scope.m.moveStatus.stopped()"
+        if $scope.m.moveStatus.index < 0
+          $scope.m.poses.push allRobotWheelPositions()
+        else
+          $scope.m.poses.splice(
+            $scope.m.moveStatus.index + 1
+            0
+            allRobotWheelPositions()
+          )
+
+    deletePose = ->
+      # Only remove if paused
+      if ! $scope.m.moveStatus.timeout
+        # FIXME make this "if $scope.m.moveStatus.stopped()"
+        if $scope.m.moveStatus.index < 0
+          $scope.m.poses.pop()
+        else
+          $scope.m.poses.splice(
+            $scope.m.moveStatus.index
+            1
+          )
+
+
+    robo.register(
+      button:
+        0: callback: -> $scope.$apply(-> addPose())
+        1: callback: -> $scope.$apply(-> $scope.toggleRun())
+        2: callback: -> $scope.$apply(-> deletePose())
+    )
+
+  pauseProgram = () ->
+    clearTimeout($scope.m.moveStatus.timeout)
     $scope.m.robots.map((r) -> r.stop())
-    $scope.m.timeout = null
+    $scope.m.moveStatus.timeout = null
+    decrementMoveIndex()
+
+  stopProgram = () ->
+    pauseProgram()
+    $scope.m.moveStatus.index = -1
 
   runProgram = () ->
     robots = $scope.m.robots
@@ -95,55 +133,50 @@ mod.controller('actions', ['$scope', ($scope) ->
       $scope.m.speeds
     )
 
-    destPositions = $scope.m.poses
-    # First start position is current position
-    startPositions = $scope.m.poses.slice()
-    startPositions.unshift(allRobotWheelPositions())
+    curPositions = allRobotWheelPositions()
+    move(curPositions)
 
-    moves = zip(
-      makeMove
-      startPositions
+  ##
+  # Sub functions
+  ##
+
+  move = (curPositions) ->
+    idx = incrementMoveIndex()
+    destPositions = $scope.m.poses[idx]
+    dT = max_dTs(curPositions, destPositions)
+
+    moveRobots(destPositions)
+
+    nextCmd =
+      if $scope.m.poses.length > 1
+        -> move(destPositions)
+      else
+        -> stopProgram()
+
+    $scope.m.moveStatus.timeout = setTimeout(
+      -> $scope.$apply(nextCmd)
+      dT * 1000
+    )
+
+  incrementMoveIndex = ->
+    $scope.m.moveStatus.index =
+      ($scope.m.moveStatus.index + 1) % $scope.m.poses.length
+
+  decrementMoveIndex = ->
+    s = $scope.m.moveStatus
+    p = $scope.m.poses
+    s.index =
+      (s.index + p.length - 1) % p.length
+
+  moveRobots = (destPositions) ->
+    zip(
+      (r,pos) -> r.moveTo(pos...)
+      $scope.m.robots
       destPositions
     )
 
-    # Create a matrioshka doll of setTimeouts.
-    allMoves = moves.reduceRight(
-      (rest, move) ->
-        ->
-          move.cmd()
-          $scope.m.timeout =
-            setTimeout(rest, (move.dT + $scope.m.moveDelay) * 1000)
-      -> $scope.$apply(-> stopProgram())
-    )
-
-    allMoves()
-
-  ##
-  # Sub functions for runProgram:
-  ##
-
-  # makeMove
-  #
-  # Returns an obj: a function that will move all robots to the
-  # destination, and the amount of time dT the move takes.
-  #
-  # starts and dests are 2-d arrays keyed by (robot, wheel).
-  makeMove = (starts, dests) ->
-
-    cmd: ->
-      zip(
-        (r, d) -> r.moveTo(d...)
-        $scope.m.robots
-        dests
-      )
-    dT: max_dTs(starts, dests)
-
-  # max_dTs
-  #
-  # Given an array of starts and dests (same as makeMove), calculated dXs,
-  # then dTs given speeds in the scope, then return max dT.
   max_dTs = (starts, dests) ->
-    # Given three 1-d arrays, the start, dest, and speed of a single robot,
+    # Given three 1-d arrays; the start, dest, and speed of a single robot;
     # dT is:
     dT = (start, dest, speeds) ->
       zip(((s, d, v) -> Math.abs(d - s)/v), start, dest, speeds)

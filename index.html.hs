@@ -61,7 +61,11 @@ modNum = modifiableNumber
 codeLn :: HtmlCombr
 codeLn = (>> br)
 
-main = putStrLn $ renderHtml $ do
+--
+-- main! Generate some html.
+--
+--
+main = writeFile "index.html" $ renderHtml $ do
   docType
   html ! lang "en" $ do
     H.head $ do
@@ -129,9 +133,9 @@ programCode =
         codeLn ""
         codeLn $ do
           "    # Pose {{$index+1}} "
-          span ! ngIf "m.moveStatus.timeout && $index == m.moveStatus.index" $
+          span ! ngIf "m.moveStatus.running() && $index == m.moveStatus.index" $
             "<-- moving here"
-          span ! ngIf "! m.moveStatus.timeout && $index == m.moveStatus.index" $
+          span ! ngIf "! m.moveStatus.running() && $index == m.moveStatus.index" $
             " -!- last position"
         div ! ngIf "m.robots.length > 1" $ do
           div ! ngRepeat "r in m.robots" $ do

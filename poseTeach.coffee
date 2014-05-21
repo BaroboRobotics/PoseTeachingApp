@@ -80,26 +80,24 @@ mod.controller('actions', ['$scope', ($scope) ->
     $scope.m.robots.push robo
     $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
 
-    addPose = (r,m,e) ->
-      $scope.$apply(->
-        # Only add if paused
-        if ! $scope.m.moveStatus.timeout
-          # FIXME make this "if $scope.m.moveStatus.stopped()"
-          if $scope.m.moveStatus.index < 0
-            $scope.m.poses.push allRobotWheelPositions()
-          else
-            $scope.m.poses.splice(
-              $scope.m.moveStatus.index + 1
-              0
-              allRobotWheelPositions()
-            )
-      )
+    addPose = ->
+      # Only add if paused
+      if ! $scope.m.moveStatus.timeout
+        # FIXME make this "if $scope.m.moveStatus.stopped()"
+        if $scope.m.moveStatus.index < 0
+          $scope.m.poses.push allRobotWheelPositions()
+        else
+          $scope.m.poses.splice(
+            $scope.m.moveStatus.index + 1
+            0
+            allRobotWheelPositions()
+          )
 
     deletePose = ->
 
     robo.register(
       button:
-        0: callback: addPose
+        0: callback: -> $scope.$apply(-> addPose())
         1: callback: -> $scope.$apply(-> $scope.toggleRun())
         2: callback: deletePose
     )

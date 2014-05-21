@@ -45,11 +45,13 @@ class MoveStatus
   decrementIndex: ->
     p = @scope.m.poses
     @index =
-      (@index + p.length - 1) % p.length
+      if p.length > 0
+        (@index + p.length - 1) % p.length
+      else
+        -1
   incrementIndex: ->
     @index =
       (@index + 1) % @scope.m.poses.length
-
 
 
 mod.controller('actions', ['$scope', ($scope) ->
@@ -120,6 +122,7 @@ mod.controller('actions', ['$scope', ($scope) ->
             $scope.m.moveStatus.index
             1
           )
+          $scope.m.moveStatus.decrementIndex()
 
 
     robo.register(

@@ -131,33 +131,38 @@ programCode =
       codeLn "while True:"
       div ! ngRepeat "pose in m.poses" $ do
         codeLn ""
-        codeLn $ do
-          "    # Pose {{$index+1}} "
-          span ! ngIf "m.moveStatus.running() && $index == m.moveStatus.index" $
-            "<-- moving here"
-          span ! ngIf "! m.moveStatus.running() && $index == m.moveStatus.index" $
-            " -!- last position"
-        div ! ngIf "m.robots.length > 1" $ do
-          div ! ngRepeat "r in m.robots" $ do
-            -- Generates e.g. "linkbot1.moveToNB(80.2, 28.9, 91.3)"
-            codeLn $ do
-              "    linkbot{{$index+1}}.moveToNB("
-              modNum "pose[$index][0]" >> ", "
-              modNum "pose[$index][1]" >> ", "
-              modNum "pose[$index][2]" >> ")"
-          div ! ngRepeat "r in m.robots" $ do
-            codeLn $ do
-              "    linkbot{{$index+1}}.moveWait()"
-        div ! ngIf "m.robots.length == 1" $ do
-          div ! ngRepeat "r in m.robots" $ do
-            codeLn $ do
-              "    linkbot{{$index+1}}.moveTo("
-              modNum "pose[$index][0]" >> ", "
-              modNum "pose[$index][1]" >> ", "
-              modNum "pose[$index][2]" >> ")"
+        div ! highlightCurrentMove $ do
+          codeLn $ do
+            "    # Pose {{$index+1}} "
+          div ! ngIf "m.robots.length > 1" $ do
+            div ! ngRepeat "r in m.robots" $ do
+              -- Generates e.g. "linkbot1.moveToNB(80.2, 28.9, 91.3)"
+              codeLn $ do
+                "    linkbot{{$index+1}}.moveToNB("
+                modNum "pose[$index][0]" >> ", "
+                modNum "pose[$index][1]" >> ", "
+                modNum "pose[$index][2]" >> ")"
+            div ! ngRepeat "r in m.robots" $ do
+              codeLn $ do
+                "    linkbot{{$index+1}}.moveWait()"
+          div ! ngIf "m.robots.length == 1" $ do
+            div ! ngRepeat "r in m.robots" $ do
+              codeLn $ do
+                "    linkbot{{$index+1}}.moveTo("
+                modNum "pose[$index][0]" >> ", "
+                modNum "pose[$index][1]" >> ", "
+                modNum "pose[$index][2]" >> ")"
       div ! ngIf "! m.loop" $ do
         codeLn ""
         codeLn "    break"
+
+  where
+  highlightCurrentMove =
+    ngClass . strVal $
+         "{'bg-success': m.moveStatus.runningAt($index)"
+      ++ ",'bg-danger': m.moveStatus.pausedAt($index)}"
+  strVal :: String -> AttributeValue
+  strVal = toValue
 
 pythonBoilerplate = do
   dongleBoilerplate

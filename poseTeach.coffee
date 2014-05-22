@@ -37,6 +37,10 @@ class MoveStatus
 
   stop: -> @index = -1
   running: -> @timeout != null
+  runningAt: (idx) ->
+    @running() && idx == @index
+  pausedAt: (idx) ->
+    !@running() && idx == @index
   stopped: -> @index == -1
   pause: ->
     clearTimeout(@timeout)

@@ -76,7 +76,7 @@ mod.controller('actions', ['$scope', ($scope) ->
       return if rid == r._id
     try
       setupRobot(rid)
-      $scope.m.poses = []
+      $scope.clearProgram()
     catch e
       console.log e
 
@@ -117,6 +117,7 @@ mod.controller('actions', ['$scope', ($scope) ->
             0
             allRobotWheelPositions()
           )
+          $scope.m.moveStatus.incrementIndex()
 
     deletePose = ->
       if ! $scope.m.moveStatus.running()

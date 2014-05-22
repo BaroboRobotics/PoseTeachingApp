@@ -115,16 +115,17 @@ programListingSection =
   section !. "program-listing container" $ do
     programControls
     programCode
+    button ! ngClick "m.loop = m.loop ? false : true" $
+      "{{ m.loop ? 'Loop off' : 'Loop on'}}"
 
 programControls =
   "program-controls" .$ do
     button ! ngClick "toggleRun()" $ do
       "{{ m.moveStatus.running() ? 'Pause' : 'Run' }}"
-    button ! ngClick "m.loop = m.loop ? false : true" $ "Loop?"
-    a ! ngClick "clearProgram()" $ "Clear"
+    button ! ngClick "clearProgram()" $ "Clear"
 
 programCode =
-  pre !. "program-code" $ do
+  pre !. "program-code" ! A.style "margin: 0" $ do
     "program-code--boilerplate" .$
       pythonBoilerplate
     "program-code--code" .! ngIf "m.poses.length > 0" $ do

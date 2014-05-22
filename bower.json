@@ -1,0 +1,19 @@
+{
+  "name": "PoseTeaching",
+  "version": "0.1.0",
+  "authors": [
+    "Bryan Richter <bryan@barobo.com>"
+  ],
+  "main": "index.html.hs",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.1.1",
+    "angular": "~1.2.16"
+  }
+}

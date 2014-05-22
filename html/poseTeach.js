@@ -104,7 +104,7 @@
         }
         try {
           setupRobot(rid);
-          return $scope.m.poses = [];
+          return $scope.clearProgram();
         } catch (_error) {
           e = _error;
           return console.log(e);
@@ -137,7 +137,8 @@
             if ($scope.m.moveStatus.stopped()) {
               return $scope.m.poses.push(allRobotWheelPositions());
             } else {
-              return $scope.m.poses.splice($scope.m.moveStatus.index + 1, 0, allRobotWheelPositions());
+              $scope.m.poses.splice($scope.m.moveStatus.index + 1, 0, allRobotWheelPositions());
+              return $scope.m.moveStatus.incrementIndex();
             }
           }
         };

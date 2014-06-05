@@ -30,6 +30,12 @@ mod.directive('modifiable', ->
       )
 )
 
+mod.directive('robotManager', ->
+  restrict: 'E'
+  link: (scope, elem) ->
+    elem.append(Linkbots.managerElement())
+)
+
 class MoveStatus
   constructor: (@scope) ->
     @timeout = null
@@ -69,16 +75,11 @@ mod.controller('actions', ['$scope', ($scope) ->
     speeds: []
     moveStatus: new MoveStatus($scope)
 
-  $scope.connect = () ->
-    rid = $scope.m.robotIdInput
-    $scope.m.robotIdInput = null
-    for r in $scope.m.robots
-      return if rid == r._id
-    try
-      setupRobot(rid)
+  $scope.addRobot = () ->
+    x = Linkbots.acquire(1)
+    if x.robots.length == 1
+      setupRobot(x.robots[0])
       $scope.clearProgram()
-    catch e
-      console.log e
 
   $scope.clearProgram = () ->
     $scope.m.poses = []
@@ -99,10 +100,7 @@ mod.controller('actions', ['$scope', ($scope) ->
       (r) -> r.wheelPositions().map(oneDecimal)
     )
 
-  setupRobot = (rid) ->
-    # connect() may throw, of course, short circuiting the rest of this
-    # function.
-    robo = Linkbots.connect(rid)
+  setupRobot = (robo) ->
     robo.stop()
     $scope.m.robots.push robo
     $scope.m.speeds.push $scope.m.defaultSpeeds.slice()

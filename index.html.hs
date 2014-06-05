@@ -61,6 +61,10 @@ modNum = modifiableNumber
 codeLn :: HtmlCombr
 codeLn = (>> br)
 
+-- "robotManager" directive
+robotManager :: Html
+robotManager = elemDirective "robot-manager" $ mempty
+
 --
 -- main! Generate some html.
 --
@@ -71,7 +75,7 @@ main = writeFile "index.html" $ renderHtml $ do
     H.head $ do
       H.title $ "Pose Teaching"
       meta ! httpEquiv "Content-Type" ! content "text/html; charset=utf-8"
-      js "linkbot.js"
+      js "bower_components/linkbotjs/linkbot.js"
       js "bower_components/angular/angular.js"
       js "poseTeach.js"
       css "bower_components/bootstrap/dist/css/bootstrap.css"
@@ -91,25 +95,6 @@ lllogo =
 
 appTitle =
   h1 !. "sidebar--title" $ "Pose Teaching"
-
-robotManager = do
-  robotForm $ do
-    "form-group" .$ do
-      roboInputLabel
-      roboInput
-    connectBtn
-  activeRobotDisplay
-
-  where
-  activeRobotDisplay = "active-robot" .! ngRepeat "robot in m.robots" $ do
-                         "{{robot._id |uppercase}}"
-  robotForm = form !. "sidebar--robot-mgr form-inline"
-  roboInputLabel = label !. "sr-only" ! for "roboInput" $ "Linkbot ID"
-  roboInput = input ! ngModel "m.robotIdInput" !. "form-control"
-                    ! type_ "text"
-                    ! placeholder "Linkbot ID"
-  connectBtn = button !. "form-control" ! ngClick "connect()" $ "+"
-
 
 programListingSection =
   section !. "program-listing container" $ do
@@ -178,6 +163,8 @@ dongleBoilerplate = mapM_ codeLn
   , "import barobo"
   , "dongle = barobo.Dongle()"
   , "dongle.connect()"
+  , ""
+  , "# Add a robot: " >> (button "+" ! ngClick "addRobot()")
   , ""
   ]
 

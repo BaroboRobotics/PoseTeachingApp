@@ -31,6 +31,15 @@
     };
   });
 
+  mod.directive('robotManager', function() {
+    return {
+      restrict: 'E',
+      link: function(scope, elem) {
+        return elem.append(Linkbots.managerElement());
+      }
+    };
+  });
+
   MoveStatus = (function() {
     function MoveStatus(scope) {
       this.scope = scope;
@@ -91,23 +100,12 @@
         speeds: [],
         moveStatus: new MoveStatus($scope)
       };
-      $scope.connect = function() {
-        var e, r, rid, _i, _len, _ref;
-        rid = $scope.m.robotIdInput;
-        $scope.m.robotIdInput = null;
-        _ref = $scope.m.robots;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          r = _ref[_i];
-          if (rid === r._id) {
-            return;
-          }
-        }
-        try {
-          setupRobot(rid);
+      $scope.addRobot = function() {
+        var x;
+        x = Linkbots.acquire(1);
+        if (x.robots.length === 1) {
+          setupRobot(x.robots[0]);
           return $scope.clearProgram();
-        } catch (_error) {
-          e = _error;
-          return console.log(e);
         }
       };
       $scope.clearProgram = function() {
@@ -126,9 +124,8 @@
           return r.wheelPositions().map(oneDecimal);
         });
       };
-      setupRobot = function(rid) {
-        var addPose, deletePose, robo;
-        robo = Linkbots.connect(rid);
+      setupRobot = function(robo) {
+        var addPose, deletePose;
         robo.stop();
         $scope.m.robots.push(robo);
         $scope.m.speeds.push($scope.m.defaultSpeeds.slice());

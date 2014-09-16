@@ -1,0 +1,158 @@
+body {
+	margin-left: 40px;
+}
+.robomgr-container {
+	z-index: 1000;
+	background-color: #FFF;
+	width: 300px;
+	height: 300px;
+	font-size: 14px;
+	float: left;
+	position: fixed;
+	top: 100px;
+	border: 1px solid black;
+	padding: 3px 3px 3px 7px;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+	line-height: 1.42857143;
+}
+
+.robomgr-container form div#robotFormContainer {
+	padding: 5px 0;
+}
+
+.robomgr-container form {
+	background-color: #fff;
+	border-color: #ddd;
+	border-width: 1px;
+	border-radius: 4px 4px 0 0;
+}
+.robomgr-container form label {
+	font-weight: 700;
+	display: inline-block;
+	margin-right: 10px;
+}
+.robomgr-container form input#robotInput {
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	padding: 5px 5px 7px;
+	margin-right: 7px;
+}
+.robomgr-container button {
+	color: #333;
+	background-color: #fff;
+	display: inline-block;
+	padding: 6px 12px;
+	margin-bottom: 0;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+.robomgr-container ol {
+	padding-left: 0;
+	margin-bottom: 20px;
+	margin-top: 0;
+	width: 240px;
+	height: 230px;
+	overflow-y: scroll;
+}
+.robomgr-container ol li:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+}
+.robomgr-container ol li:last-child {
+	margin-bottom: 0;
+	border-bottom-right-radius: 4px;
+	border-bottom-left-radius: 4px;
+}
+.robomgr-container ol li {
+	position: relative;
+	display: block;
+	padding: 10px 15px;
+	margin-bottom: -1px;
+	background-color: #fff;
+	border: 1px solid #ddd;
+}
+.robomgr-container-hidden {
+	left: -270px;
+	-webkit-transition: all 1s ease;
+  	-moz-transition: all 1s ease;
+  	-o-transition: all 1s ease;
+  	-ms-transition: all 1s ease;
+  	transition: all 1s ease;
+}
+.robomgr-container-open {
+	left: 0px;
+	-webkit-transition: all 1s ease;
+  	-moz-transition: all 1s ease;
+  	-o-transition: all 1s ease;
+  	-ms-transition: all 1s ease;
+  	transition: all 1s ease;
+}
+.robomgr-pullout {
+	float: right;
+	position: relative;
+	top: -3px;
+	right: -3px;
+	height: 298px;
+	width: 30px;
+	background-color: #F0F0F0;
+	border-left: 1px solid #D9D9D9;
+	border-top-right-radius: 10px;
+	border-bottom-right-radius: 10px;
+}
+
+.robomgr-pulloutbtn {
+	display: inline-block;
+	position: relative;
+	top: 137px;
+	right: -2px;
+}
+
+span.robomgr-left {
+	width: 0;
+	height: 0;
+	border-top: 10px solid transparent;
+	border-right: 20px solid black;
+	border-bottom: 10px solid transparent;
+}
+
+span.robomgr-right {
+	width: 0;
+	height: 0;
+	border-top: 10px solid transparent;
+	border-left: 20px solid black;
+	border-bottom: 10px solid transparent;
+}
+
+.robomgr--rmBtn {
+  cursor: pointer;
+  float: right;
+}
+
+.robomgr--hoverItem {
+  display: none;
+}
+
+.robomgr--roboHover .robomgr--hoverItem {
+  display: initial;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+}

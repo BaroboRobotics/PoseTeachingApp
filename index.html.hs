@@ -69,7 +69,7 @@ robotManager = elemDirective "robot-manager" $ mempty
 -- main! Generate some html.
 --
 --
-main = writeFile "index.html" $ renderHtml $ do
+main = writeFile "html/index.html" $ renderHtml $ do
   docType
   html ! lang "en" $ do
     H.head $ do

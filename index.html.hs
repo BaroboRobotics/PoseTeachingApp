@@ -91,8 +91,9 @@ adminSidebar =
     robotManager
 
 lllogo =
-  img !. "sidebar--logo"
-      ! src "linkbot-labs-ER-logo-200x46px.png"
+  a ! href "/AppManagerApp/html/index.html" $
+    img !. "sidebar--logo"
+        ! src "linkbot-labs-ER-logo-200x46px.png"
 
 appTitle =
   h1 !. "sidebar--title" $ "Pose Teaching"

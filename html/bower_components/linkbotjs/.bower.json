@@ -1,6 +1,5 @@
 {
   "name": "LinkbotJS",
-  "version": "0.1.1",
   "authors": [
     "Barobo, Inc."
   ],
@@ -32,13 +31,13 @@
     "jasmine-jquery": "~2.0.3",
     "jquery": "~2.1.1"
   },
-  "_release": "0.1.1",
+  "_release": "ad9ad64d21",
   "_resolution": {
-    "type": "version",
-    "tag": "v0.1.1",
-    "commit": "003999f41a976d3a5a0f0665a3977af5903b6ad0"
+    "type": "branch",
+    "branch": "develop",
+    "commit": "ad9ad64d216caf343eff2eb46e3a18fe0f4542a4"
   },
   "_source": "git://github.com/BaroboRobotics/LinkbotJS.git",
-  "_target": "~0.1.0",
+  "_target": "develop",
   "_originalSource": "BaroboRobotics/LinkbotJS"
 }

@@ -91,7 +91,7 @@ adminSidebar =
     robotManager
 
 lllogo =
-  a ! href "/AppManagerApp/html/index.html" $
+  a ! href "/index.html" $
     img !. "sidebar--logo"
         ! src "linkbot-labs-ER-logo-200x46px.png"
 

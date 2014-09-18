@@ -1,0 +1,218 @@
+
+#robomgr-container {
+	z-index: 1000;
+	background-color: transparent;
+	width: 296px;
+	height: 100%;
+	font-size: 14px;
+	float: left;
+	position: fixed;
+	top: 75px;
+	line-height: 1.42857143;
+}
+
+#robomgr-container-content {
+	background: #393939 url('img/robomgr-background.png') repeat-y right top;
+	height: 100%;
+	width: 270px;
+}
+
+#robomgr-container form div#robotFormContainer {
+	padding: 10px;
+}
+
+#robomgr-container form {
+	border-color: #ddd;
+	border-width: 1px;
+	border-radius: 4px 4px 0 0;
+}
+#robomgr-container form label {
+	font-weight: 700;
+	display: inline-block;
+	margin-right: 10px;
+}
+#robomgr-container form input#robotInput {
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+	padding: 5px 5px 7px;
+	margin-right: 7px;
+}
+#robomgr-container button {
+	color: #333;
+	background-color: #fff;
+	display: inline-block;
+	padding: 6px 12px;
+	margin-bottom: 0;
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	cursor: pointer;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+}
+#robomgr-container ol {
+	padding-left: 0;
+	margin-bottom: 20px;
+	margin-top: 0;
+	width: 265px;
+	height: 230px;
+}
+#robomgr-container ol li {
+	position: relative;
+	display: block;
+	color: #fff;
+	background-color: #606060;
+	margin-bottom: 1px;
+
+}
+#robomgr-container ol li .robomgr-slide-element {
+	color: #d8d8d8;
+	background-color: #202020;
+	width: 255px;
+	position: absolute;
+	top: 0;
+	height: 60px;
+	padding: 5px;
+	z-index: 0;
+	background: #202020 url('img/right-arrow.png') no-repeat 230px 8px;
+}
+
+#robomgr-container ol li .robomgr-slide-element-left {
+	left: 10px;
+	background: #202020 url('img/right-arrow.png') no-repeat 230px 8px;
+}
+#robomgr-container ol li .robomgr-slide-element-right {
+	left: 250px;
+	background: #202020 url('img/left-arrow.png') no-repeat 230px 8px;
+}
+#robomgr-container .robomgr-remove-btn, #robomgr-container .robomgr-beep-btn {
+	display: inline-block;
+	padding-top: 40px;
+	width: 30px;
+	margin-left: 40px;
+}
+#robomgr-container .robomgr-remove-btn {
+	background: transparent url('img/trash.png') no-repeat 6px 10px;
+}
+#robomgr-container .robomgr-beep-btn {
+	background: transparent url('img/beep.png') no-repeat 6px 10px;
+}
+.robomgr-slide-element .robomgr-robot-name {
+	font-size: 20px;
+}
+.robomgr-slide-element .robomgr-robot-status {
+	font-size: 10px;
+}
+
+.robomgr-container-hidden {
+	left: -265px;
+	-webkit-transition: all 1s ease;
+  	-moz-transition: all 1s ease;
+  	-o-transition: all 1s ease;
+  	-ms-transition: all 1s ease;
+  	transition: all 1s ease;
+}
+.robomgr-container-open {
+	left: 0px;
+	-webkit-transition: all 1s ease;
+  	-moz-transition: all 1s ease;
+  	-o-transition: all 1s ease;
+  	-ms-transition: all 1s ease;
+  	transition: all 1s ease;
+}
+.robomgr-pullout {
+	float: right;
+	position: relative;
+	top: 30%;
+	right: 0;
+	height: 175px;
+	width: 26px;
+	background-color: #F0F0F0;
+	padding: 0;
+	margin: 0;
+}
+
+.robomgr-pulloutbtn {
+	display: inline-block;
+	position: relative;
+	width: 26px;
+	height: 176px;
+}
+
+span.robomgr-left {
+	background: #71b7bc url('img/robomgr-close.png') no-repeat left top;
+}
+
+span.robomgr-right {
+	background: #71b7bc url('img/robomgr-open.png') no-repeat left top;
+}
+
+#robomgr-top-navigation {
+	position: fixed;
+	top: 0;
+	right: 0;
+	left: 0;
+	background-color: #202020;
+	color: #71b7bc;
+	height: 75px;
+}
+
+#robomgr-top-navigation .robomgr-top-nav-info {
+	display: inline-block;
+	padding-left: 10px;
+	margin: 0 5px;
+	height: 75px;
+	background-color: #2d2c2c;
+	width: 500px;
+}
+
+#robomgr-top-navigation .robomgr-logo {
+	display: inline-block;
+	width: 265px;
+	margin: 0;
+	font-size: 30px;
+	padding-left: 26px;
+}
+
+#robomgr-top-navigation .robomgr-top-nav-breadcrumbs, #robomgr-top-navigation .robomgr-top-nav-title {
+	margin: 2px 0 0;
+}
+
+#robomgr-top-navigation .robomgr-top-nav-breadcrumbs {
+	color: #ccc;
+}
+
+#robomgr-top-navigation .robomgr-top-nav-title {
+	font-size: 28px;
+}
+
+.robomgr--rmBtn {
+  cursor: pointer;
+  float: right;
+}
+
+.robomgr--hoverItem {
+  display: none;
+}
+
+.robomgr--roboHover .robomgr--hoverItem {
+  display: initial;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  border: 0;
+}
+
+

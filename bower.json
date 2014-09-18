@@ -12,9 +12,9 @@
     "node_modules",
     "bower_components"
   ],
-  "dependencies": {
+  "devDependencies": {
     "bootstrap": "~3.1.1",
     "angular": "~1.2.16",
-    "linkbotjs": "BaroboRobotics/LinkbotJS#~0.1.0"
+    "linkbotjs": "BaroboRobotics/LinkbotJS#develop"
   }
 }

@@ -1,10 +1,13 @@
 baroboBridge = (function(main) {
     var _i, _j, _len, _len1;
-    if (main.baroboBridge !== null) {
+    if (main.baroboBridge && main.baroboBridge !== null) {
       return main.baroboBridge;
     } else {
-      methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged', 'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals', 'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'scan', 'setMotorEventThreshold', 'stop'];
-      signals = ['motorChanged', 'buttonChanged'];
+      methods = ['angularSpeed', 'availableFirmwareVersions', 'buttonChanged', 'buzzerFrequency',
+        'connectRobot', 'disconnectRobot', 'enableButtonSignals', 'enableMotorSignals', 'enableAccelSignals', 'disableAccelSignals',
+        'disableButtonSignals', 'disableMotorSignals', 'firmwareVersion', 'getMotorAngles', 'moveTo',
+        'scan', 'setMotorEventThreshold', 'stop', 'getLEDColor', 'setLEDColor', 'moveContinuous'];
+      signals = ['accelChanged', 'motorChanged', 'buttonChanged'];
       obj = {
         mock: true
       };
@@ -111,14 +114,127 @@ baroboBridge = (function(main) {
   };
 }
 ;function RobotManager(document) {
+    // Private
     var manager = this;
     var events = {
         'add': [],
         'remove': [],
         'moved': []
     };
+    var controlPanelRobot = null;
 
-    // Private
+    function controlStopPressed() {
+      controlPanelRobot.linkbot.stop();
+    }
+    function controlZeroPressed() {
+      controlPanelRobot.linkbot.moveTo(0, 0, 0);
+    }
+    
+    function controlBeepClicked() {
+      var val = LinkbotControls.slider.getValue('buzzer-frequency-id');
+      controlPanelRobot.linkbot.buzzerFrequency(val);
+      setTimeout(function() { controlPanelRobot.linkbot.buzzerFrequency(0); }, 250);
+    }
+    
+    function controlBeepDown() {
+      var val = LinkbotControls.slider.getValue('buzzer-frequency-id');
+      controlPanelRobot.linkbot.buzzerFrequency(val);
+    }
+
+    function controlBeepUp() {
+      controlPanelRobot.linkbot.buzzerFrequency(0);
+    }
+
+    function controlSpeedChanged(value) {
+      var j1, j2;
+      j1 = LinkbotControls.slider.getValue('speed-joint-1');
+      j2 = LinkbotControls.slider.getValue('speed-joint-2');
+      controlPanelRobot.linkbot.angularSpeed(j1, 0, j2);
+    }
+
+    function controlKnobChanged(value) {
+      var j1, j2;
+      j1 = LinkbotControls.knob.getValue('position-joint-1');
+      j2 = LinkbotControls.knob.getValue('position-joint-2');
+      controlPanelRobot.linkbot.moveTo(j1, 0, j2);
+    }
+
+    function controlAccelChanged(robot, data, event) {
+      LinkbotControls.slider.get('accel-xaxis').setValue(event.x);
+      LinkbotControls.slider.get('accel-yaxis').setValue(event.y);
+      LinkbotControls.slider.get('accel-zaxis').setValue(event.z);
+      var mag = Math.sqrt((event.x * event.x)  + (event.y * event.y) + (event.z * event.z));
+      LinkbotControls.slider.get('accel-mag').setValue(mag);
+    }
+
+    function showControlPanel(e, r) {
+      if (r.status == 'failed') {
+        // TODO add error message here.
+        return;
+      }
+      var slideOutElements = document.getElementsByClassName('robomgr-slide-element-right');
+      for (var index = 0; index < slideOutElements.length; index++) {
+        slideOutElements[index].className = 'robomgr-slide-element robomgr-slide-element-left';
+      }
+      // Show control panel.
+      var contrlEl = document.getElementById('robomgr-control-panel');
+      contrlEl.className = '';
+      var overlay = document.getElementById('robomgr-overlay');
+      overlay.className = '';
+      var linkbotName = document.getElementById('robomgr-control-panel-linkbot');
+      linkbotName.innerText = 'Linkbot ' + r.id;
+      // Set tabs correctly.
+      document.getElementById('robomgr-tab-control-panel').className = '';
+      document.getElementById('robomgr-tab-sensors-panel').className = 'robomgr-hide';
+      document.getElementById('robomgr-tab-control').parentElement.className='robomgr-active';
+      document.getElementById('robomgr-tab-sensors').parentElement.className='';
+      // TODO handle logic for robot control
+      controlPanelRobot = r;
+      controlPanelRobot.linkbot.angularSpeed(50, 0, 50);
+      LinkbotControls.slider.get('speed-joint-1').setValue(50);
+      LinkbotControls.slider.get('speed-joint-2').setValue(50);
+      pos = controlPanelRobot.linkbot.wheelPositions();
+      if (pos) {
+        LinkbotControls.knob.get('position-joint-1').setValue(pos[0]);
+        LinkbotControls.knob.get('position-joint-2').setValue(pos[3]);
+      }
+      controlPanelRobot.linkbot.register({
+        accel: {
+          callback: controlAccelChanged
+        }
+      });
+    }
+
+    function hideControlPanel() {
+      // Dismiss Control panel.
+      var controlPanel = document.getElementById('robomgr-control-panel');
+      var overlay = document.getElementById('robomgr-overlay');
+      controlPanel.setAttribute('class', 'robomgr-hide');
+      overlay.setAttribute('class', 'robomgr-hide');
+      controlPanelRobot.linkbot.unregister();
+      controlPanelRobot = null;
+      _uiMenuSlide();
+    }
+
+    function valueToHex(value) {
+      if (!value || value === null || value === "undefined") {
+        return "00";
+      }
+      var val = Math.round(value);
+      val = val.toString(16);
+      if (val.length < 2) {
+        val = "0" + val;
+      }
+      return val;
+    }
+
+    function colorToHex(color) {
+      var red = valueToHex(color.red);
+      var green = valueToHex(color.green);
+      var blue = valueToHex(color.blue);
+      return red + green + blue;
+    }
+
     function findRobomgrId(element) {
         if (element) {
             var id = element.getAttribute('id');
@@ -188,18 +304,38 @@ baroboBridge = (function(main) {
         manager.redraw();
     }
 
+    function _closeMenuSlide(e) {
+      var spanBtn = manager.element.querySelector('span');
+      var left = /robomgr-left/.test(spanBtn.className);
+      if (!left) {
+        return;
+      }
+      _uiMenuSlide(e);
+    }
+
     function _uiMenuSlide(e) {
-        var container, left, spanBtn;
-        e.preventDefault();
+        var container, left, spanBtn, overlay;
+        if (e && e.preventDefault) { 
+          e.preventDefault();
+        }
         spanBtn = manager.element.querySelector('span');
         container = document.querySelector('#robomgr-container');
         left = /robomgr-left/.test(spanBtn.className);
+        overlay = document.getElementById('robomgr-slideout-overlay');
         if (left) {
+            var slideElements = document.getElementsByClassName('robomgr-slide-element');
+            for (var i = 0; i < slideElements.length; i++) {
+              slideElements[i].className = 'robomgr-slide-element robomgr-slide-element-left';
+            }
             spanBtn.className = 'robomgr-pulloutbtn robomgr-right';
             container.className = 'robomgr-container-hidden';
+            document.body.style.marginLeft = '';
+            overlay.style.display = 'none';
         } else {
             spanBtn.className = 'robomgr-pulloutbtn robomgr-left';
             container.className = 'robomgr-container-open';
+            document.body.style.marginLeft = '300px';
+            overlay.style.display = 'block';
         }
         return e;
     }
@@ -215,6 +351,7 @@ baroboBridge = (function(main) {
         } else {
             divElement.className = 'robomgr-slide-element robomgr-slide-element-right';
         }
+        e.stopPropagation();
     }
 
     function _uiRemoveFn(e, id) {
@@ -232,14 +369,23 @@ baroboBridge = (function(main) {
         var div = doc.createElement('div');
         var rm = doc.createElement('span');
         rm.setAttribute('class', "robomgr-remove-btn");
-        rm.innerText = 'Trash';
+        rm.innerText = 'trash';
         var beep = doc.createElement('span');
         beep.setAttribute('class', 'robomgr-beep-btn');
-        beep.innerText = 'Beep';
+        beep.innerText = 'beep';
+        var controlPanel = doc.createElement('span');
+        controlPanel.setAttribute('class', 'robomgr-cntrpnl-btn');
+        controlPanel.innerText = 'control';
         li.setAttribute('draggable', 'true');
         li.setAttribute('class', "robomgr--" + r.status);
         li.setAttribute('id', 'robomgr-id-' + r.id);
+        if (r.linkbot) {
+          li.style.background = "#" + colorToHex(r.linkbot.getColor());
+        } else {
+          li.style.background = "#606060";
+        }
         li.appendChild(beep);
+        li.appendChild(controlPanel);
         li.appendChild(rm);
         div.setAttribute('class', 'robomgr-slide-element robomgr-slide-element-left');
         var htmlVal = ['',
@@ -252,7 +398,7 @@ baroboBridge = (function(main) {
         li.addEventListener('dragstart', dragStart);
         li.addEventListener('dragover', dragOver);
         li.addEventListener('drop', drop);
-        div.addEventListener('click', _uiSlideOut);
+        div.addEventListener('click', _uiSlideOut, true);
         rm.addEventListener('click', function(e) {
             _uiRemoveFn(e, r.id);
         });
@@ -262,7 +408,7 @@ baroboBridge = (function(main) {
             setTimeout(function() { r.linkbot.buzzerFrequency(0); }, 250);
           }
         });
-        
+        controlPanel.addEventListener('click', function(e) { showControlPanel(e, r); });
         return li;
     }
 
@@ -270,10 +416,10 @@ baroboBridge = (function(main) {
         var el = doc.createElement('div');
         el.setAttribute('id', 'robomgr-top-navigation');
         var htmlVal = ['',
-            '<h1 class="robomgr-logo">Linkbot Labs</h1>',
+            '<h1 class="robomgr-logo"><a href="/index.html">Linkbot Labs</a></h1>',
             '<div class="robomgr-top-nav-info">',
-            ' <p class="robomgr-top-nav-breadcrumbs">Lessons // Algebra 1 // Chapter 1</p>',
-            ' <h1 class="robomgr-top-nav-title">Example Lesson 1</h1>',
+            ' <p id="ljs-top-nav-breadcrumbs" class="robomgr-top-nav-breadcrumbs">&nbsp;</p>',
+            ' <h1 id="ljs-top-nav-title" class="robomgr-top-nav-title">&nbsp;</h1>',
             '</div>'
         ].join('');
         el.innerHTML = htmlVal;
@@ -281,8 +427,13 @@ baroboBridge = (function(main) {
     }
 
     function _constructElement(doc) {
-        var addBtn, el, pulloutBtn;
+        var addBtn, el, controlPanel, overlay, pulloutBtn, slideOverlay;
         el = doc.createElement('div');
+        slideOverlay = doc.createElement('div');
+        slideOverlay.setAttribute('id', 'robomgr-slideout-overlay');
+        overlay = doc.createElement('div');
+        overlay.setAttribute('id', 'robomgr-overlay');
+        overlay.setAttribute('class', 'robomgr-hide');
         el.setAttribute('class', 'robomgr-container-hidden');
         el.setAttribute('id', 'robomgr-container');
         var htmlVal = ['',
@@ -304,6 +455,221 @@ baroboBridge = (function(main) {
         pulloutBtn = el.querySelector('.robomgr-pullout');
         addBtn.addEventListener('click', _uiAdd);
         pulloutBtn.addEventListener('click', _uiMenuSlide);
+
+        slideOverlay.addEventListener('click', _closeMenuSlide);
+
+        controlPanel = doc.createElement('div');
+        controlPanel.setAttribute('class', 'robomgr-hide');
+        controlPanel.setAttribute('id', 'robomgr-control-panel');
+        var controlPanelHtml = ['',
+          '<div class="robomgr-control-nav">',
+          ' <div class="robomgr-control-img">close</div>',
+          ' <div class="robomgr-control-title">',
+          '   <h1 id="robomgr-control-panel-linkbot">Linkbot</h1>',
+          '   <span>control panel</span>',
+          ' </div>',
+          '</div>',
+          '<div>',
+          ' <ul class="robomgr-tabs">',
+          '   <li class="robomgr-active"><a id="robomgr-tab-control">control</a></li>',
+          '   <li><a id="robomgr-tab-sensors">sensors</a></li>',
+          ' </ul>',
+          '</div>',
+          '<div id="robomgr-tab-control-panel">',
+          ' <div class="robomgr-row">',
+          '   <div class="robomgr-control-col" style="visibility: hidden;"></div>',
+          '   <div class="robomgr-control-col">',
+          '     joint control',
+          '     <div class="robomgr-control-poster">',
+          '       <div style="display: inline-table;">',
+          '         <button id="robomgr-joint1-up" class="robomgr-btn-up joint-control-btn">joint 1 up</button>',
+          '         <button id="robomgr-joint1-stop" class="robomgr-btn-stop joint-control-btn">joint 1 stop</button>',
+          '         <button id="robomgr-joint1-down" class="robomgr-btn-down joint-control-btn">joint 1 down</button>',
+          '         joint1',
+          '       </div>',
+          '       <div style="display: inline-table;">',
+          '         <button id="robomgr-joint2-up" class="robomgr-btn-up joint-control-btn">joint 2 up</button>',
+          '         <button id="robomgr-joint2-stop" class="robomgr-btn-stop joint-control-btn">joint 2 stop</button>',
+          '         <button id="robomgr-joint2-down" class="robomgr-btn-down joint-control-btn">joint 2 down</button>',
+          '         joint2',
+          '       </div>',
+          '     </div>',
+          '   </div>',
+          ' </div>',
+          ' <div class="robomgr-row">',
+          '   <div class="robomgr-control-col">',
+          '     drive control',
+          '     <div class="robomgr-control-poster">',
+          '       <div><button id="robomgr-drive-up" class="drive-control-btn-sm robomgr-btn-up">up</button></div>',
+          '       <div>',
+          '         <button id="robomgr-drive-left" class="drive-control-btn-sm robomgr-btn-left">left</button>',
+          '         <button id="robomgr-drive-down" class="drive-control-btn-sm robomgr-btn-down">down</button>',
+          '         <button id="robomgr-drive-right" class="drive-control-btn-sm robomgr-btn-right">right</button>',
+          '       </div>',
+          '       <div><button id="robomgr-drive-zero" class="drive-control-btn-lg robomgr-btn-zero">zero</button></div>',
+          '       <div><button id="robomgr-drive-stop" class="drive-control-btn-lg robomgr-btn-stop">stop</button></div>',
+          '     </div>',
+          '   </div>',
+          '   <div class="robomgr-control-col">position',
+          '     <div class="robomgr-control-poster" style="padding: 10px;">',
+          '       <div style="float: left;">',
+          '         <input type="text" class="linkbotjs-knob" id="position-joint-1" /> <p style="padding-top: 10px;">Joint 1</p>',
+          '       </div>',
+          '       <div style="margin-left: 125px; width: 125px;">',
+          '         <input type="text" class="linkbotjs-knob" id="position-joint-2" /> <p style="padding-top: 10px;">Joint 2</p>',
+          '       </div>',
+          '     </div>',
+          '   </div>',
+          ' </div>',
+          ' <div class="robomgr-row">',
+          '   <div class="robomgr-control-col">speed',
+          '     <div class="robomgr-control-poster" style="padding: 10px;">',
+          '       <div style="float: left; width: 110px;">',
+          '         <div id="speed-joint-1" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 1: <span id="speed-joint-1-value">10</span></p>',
+          '       </div>',
+          '       <div style="margin-left: 132px; width: 110px;">',
+          '         <div id="speed-joint-2" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 2: <span id="speed-joint-2-value">10</span></p>',
+          '       </div>',
+          '     </div>',
+          '   </div>',
+          '   <div class="robomgr-control-col">acceleration',
+          '     <div class="robomgr-control-poster" style="padding: 10px;">',
+          '       <div style="float: left; width: 110px;">',
+          '         <div id="acceleration-joint-1" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 1: <span id="acceleration-joint-1-value">10</span></p>',
+          '       </div>',
+          '       <div style="margin-left: 132px; width: 110px;">',
+          '         <div id="acceleration-joint-2" class="linkbotjs-slider" data-min="10" data-max="200"></div> <p style="padding-top: 10px;">Joint 2: <span id="acceleration-joint-2-value">10</span></p>',
+          '       </div>',
+          '     </div>',
+          '   </div>',
+          ' </div>',
+          '</div>',
+          '<div id="robomgr-tab-sensors-panel" class="robomgr-hide">',
+          ' <div class="robomgr-row" style="text-align: center;">buzzer control',
+          '     <div class="robomgr-control-poster" style="padding: 10px 30px;">',
+          '     <div>',
+          '       <div style="float: left; width: 300px;">',
+          '         <span>buzzer frequency (hz):</span> <span id="buzzer-frequency-id-value">440</span>',
+          '         <div id="buzzer-frequency-id" class="linkbotjs-slider" data-min="130" data-max="1000"></div>',
+          '       </div>',
+          '       <div style="width: 100px; margin-left: 305px;">',
+          '         <span id="buzzer-frequency-button" class="robomgr-beep-btn">beep</span>',
+          '       </div>',
+          '     </div>',
+          '   </div>',
+          ' </div>',
+          ' <div class="robomgr-row" style="text-align: center;">accelerometer',
+          '   <div class="robomgr-control-poster" style="height: 300px; padding: 20px;">',
+          '     <div style="float: left; width: 140px; height: 100%;"><div id="accel-xaxis" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="-5" data-max="5"></div><p style="padding-top: 10px;">x axis: <span id="accel-xaxis-value">0</span></p></div>',
+          '     <div style="float: left; width: 140px; height: 100%;"><div id="accel-yaxis" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="-5" data-max="5"></div><p style="padding-top: 10px;">y axis: <span id="accel-yaxis-value">0</span></p></div>',
+          '     <div style="float: left; width: 140px; height: 100%;"><div id="accel-zaxis" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="-5" data-max="5"></div><p style="padding-top: 10px;">z axis: <span id="accel-zaxis-value">0</span></p></div>',
+          '     <div style="width: 130px; margin-left: 420px; height: 100%;"><div id="accel-mag" style="height: 90%; margin: 0 auto;" class="linkbotjs-vslider" data-type="float" data-min="0" data-max="5"></div><p style="padding-top: 10px;">mag: <span id="accel-mag-value">0</span></p></div>',
+          '   </div>',
+          ' </div>',
+          '</div>'
+        ].join('');
+        controlPanel.innerHTML = controlPanelHtml;
+        // Order matters.
+        el.appendChild(slideOverlay);
+        el.appendChild(overlay);
+        el.appendChild(controlPanel);
+        overlay.addEventListener('click', hideControlPanel);
+        controlPanel.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+        var imgElements = controlPanel.getElementsByClassName('robomgr-control-img');
+        imgElements[0].addEventListener('click', function(e) {
+          hideControlPanel();
+        });
+        // Enable controls.
+        var i;
+        var knobElements = controlPanel.getElementsByClassName('linkbotjs-knob');
+        for (i = 0; i < knobElements.length; i++) {
+          LinkbotControls.knob.add(knobElements[i]);
+        }
+        var sliderElements = controlPanel.getElementsByClassName('linkbotjs-slider');
+        for (i = 0; i < sliderElements.length; i++) {
+          LinkbotControls.slider.add(sliderElements[i]);
+        }
+        var vsliderElements = controlPanel.getElementsByClassName('linkbotjs-vslider');
+        for (i = 0; i < vsliderElements.length; i++) {
+          LinkbotControls.slider.add(vsliderElements[i]);
+        }
+        //Add event handling:
+        LinkbotControls.slider.addChangeCallback('speed-joint-1', function(value) {
+          document.getElementById('speed-joint-1-value').innerText = value;
+          controlSpeedChanged(value);
+        });
+        LinkbotControls.slider.addChangeCallback('speed-joint-2', function(value) {
+          document.getElementById('speed-joint-2-value').innerText = value;
+          controlSpeedChanged(value);
+        });
+        LinkbotControls.slider.addChangeCallback('acceleration-joint-1', function(value) {
+          document.getElementById('acceleration-joint-1-value').innerText = value;
+        });
+        LinkbotControls.slider.addChangeCallback('acceleration-joint-2', function(value) {
+          document.getElementById('acceleration-joint-2-value').innerText = value;
+        });
+        LinkbotControls.slider.addChangeCallback('buzzer-frequency-id', function(value) {
+          document.getElementById('buzzer-frequency-id-value').innerText = value;
+        });
+        LinkbotControls.slider.addChangeCallback('accel-xaxis', function(value) {
+          document.getElementById('accel-xaxis-value').innerText = Math.round(value * 10000) / 10000;
+        });
+        LinkbotControls.slider.addChangeCallback('accel-yaxis', function(value) {
+          document.getElementById('accel-yaxis-value').innerText = Math.round(value * 10000) / 10000;
+        });
+        LinkbotControls.slider.addChangeCallback('accel-zaxis', function(value) {
+          document.getElementById('accel-zaxis-value').innerText = Math.round(value * 10000) / 10000;
+        });
+        LinkbotControls.slider.addChangeCallback('accel-mag', function(value) {
+          document.getElementById('accel-mag-value').innerText = Math.round(value * 10000) / 10000;
+        });
+        LinkbotControls.knob.addChangeCallback('position-joint-1', controlKnobChanged);
+        LinkbotControls.knob.addChangeCallback('position-joint-2', controlKnobChanged);
+        var tabs = controlPanel.getElementsByTagName('a');
+        /* jshint ignore:start */
+        for (i in tabs) {
+          if (tabs[i].id == 'robomgr-tab-control') {
+            tabs[i].addEventListener('click', function(e) {
+              document.getElementById('robomgr-tab-control-panel').className = '';
+              document.getElementById('robomgr-tab-sensors-panel').className = 'robomgr-hide';
+              document.getElementById('robomgr-tab-control').parentElement.className='robomgr-active';
+              document.getElementById('robomgr-tab-sensors').parentElement.className='';
+              e.stopPropagation();
+            });
+          } else if (tabs[i].id == 'robomgr-tab-sensors') {
+            tabs[i].addEventListener('click', function(e) {
+              document.getElementById('robomgr-tab-control-panel').className = 'robomgr-hide';
+              document.getElementById('robomgr-tab-sensors-panel').className = '';
+              document.getElementById('robomgr-tab-control').parentElement.className='';
+              document.getElementById('robomgr-tab-sensors').parentElement.className='robomgr-active';
+              e.stopPropagation();
+            });
+          }
+        }
+        var beepBtns = controlPanel.getElementsByClassName('robomgr-beep-btn');
+        i = 0;
+        for (i in beepBtns) {
+          var beepBtn = beepBtns[i];
+          if (beepBtn && beepBtn.addEventListener) {
+            beepBtn.addEventListener('onmousedown', controlBeepDown);
+            beepBtn.addEventListener('onmouseup', controlBeepUp);
+            beepBtn.addEventListener('click', controlBeepClicked);
+          }
+        }
+        var buttons = controlPanel.getElementsByTagName('button');
+        for (i in buttons) {
+          var btn = buttons[i];
+          if (btn && btn.id) {
+            if (btn.id == 'robomgr-joint1-stop' || btn.id == 'robomgr-joint2-stop' || btn.id == 'robomgr-drive-stop') {
+              btn.addEventListener('click', controlStopPressed);
+            } else if (btn.id == 'robomgr-drive-zero') {
+              btn.addEventListener('click', controlZeroPressed);
+            }
+          }
+        }
+        /* jshint ignore:end */
         return el;
     }
 
@@ -381,10 +747,19 @@ baroboBridge = (function(main) {
         }
     };
 
+    this.selectedControlPanelRobot = function() {
+      return controlPanelRobot;
+    };
+
 }
 ;function Linkbot(_id) {
   // Private
   var bot = this;
+  var ledCallbacks = [];
+  var wheelSlotCallback = null;
+  var buttonSlotCallback = null;
+  var accelSlotCallback = null;
+  var joinDirection = [0, 0, 0];
 
   bot._id = _id;
   err = baroboBridge.connectRobot(_id);
@@ -404,6 +779,21 @@ baroboBridge = (function(main) {
       baroboBridge.stop(bot._id);
       document.location = "../LinkbotUpdate/index.html?badRobot=" + idAsURI;
     }
+  }
+
+  function accelSlot(robot, callback, model) {
+    if (model === null) {
+      model = {};
+    }
+    return function(robotID, x, y, z) {
+      if (robotID === robot._id) {
+        return callback(robot, model, {
+          x: x,
+          y: y,
+          z: z
+        });
+      }
+    };
   }
 
   function buttonSlot(robot, buttonId, callback, model) {
@@ -443,6 +833,21 @@ baroboBridge = (function(main) {
 
   this.color = function(r, g, b) {
     baroboBridge.setLEDColor(bot._id, r, g, b);
+    for (var i in ledCallbacks) {
+      ledCallbacks[i](bot._id, r, g, b);
+    }
+  };
+
+  this.getColor = function() {
+    var color = null;
+    if (baroboBridge.getLEDColor) {
+      color = baroboBridge.getLEDColor(bot._id);
+    }
+    if (!color || color === null) {
+      color = {red:96, green:96, blue:96};
+    }
+    color.id = bot._id;
+    return color;
   };
 
   this.angularSpeed = function(s1, s2, s3) {
@@ -463,6 +868,40 @@ baroboBridge = (function(main) {
     return baroboBridge.moveTo(bot._id, r1, r2, r3);
   };
 
+  this.moveForward = function() {
+    joinDirection[0] = 1;
+    joinDirection[2] = -1;
+    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+  };
+  this.moveBackward = function() {
+    joinDirection[0] = -1;
+    joinDirection[2] = 1;
+    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+  };
+  this.moveLeft = function() {
+    joinDirection[0] = -1;
+    joinDirection[2] = -1;
+    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+  };
+  this.moveRight = function() {
+    joinDirection[0] = 1;
+    joinDirection[2] = 1;
+    baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+  };
+  this.moveJointContinuous = function(joint, direction) {
+    if (joint >= 0 && joint <= 2) {
+      if (direction > 0) {
+        joinDirection[joint] = 1;
+      } else if (direction < 0) {
+        joinDirection[joint] = -1;
+      } else {
+        joinDirection[joint] = 0;
+      }
+      baroboBridge(bot._id, joinDirection[0], joinDirection[1], joinDirection[2]);
+      return true;
+    }
+    return false;
+  };
   this.wheelPositions = function() {
     bot._wheelPositions = baroboBridge.getMotorAngles(bot._id);
     return bot._wheelPositions;
@@ -483,38 +922,84 @@ baroboBridge = (function(main) {
   };
 
   this.register = function(connections) {
-    var buttonId, registerObject, slot, wheelId, _ref, _ref1, _results, _wheelId;
-    if (connections.button !== null) {
+    var buttonId, registerObject, slot, wheelId, _ref, _results, _wheelId;
+    if (connections.button && connections.button !== null) {
       _ref = connections.button;
+      if (buttonSlotCallback === null) {
+        buttonSlotCallback = [];
+      }
       for (buttonId in _ref) {
-        if (!__hasProp.call(_ref, buttonId)) continue;
+        //if (!__hasProp.call(_ref, buttonId)) continue;
         registerObject = _ref[buttonId];
         slot = buttonSlot(bot, parseInt(buttonId), registerObject.callback, registerObject.data);
         baroboBridge.buttonChanged.connect(slot);
+        buttonSlotCallback.push(slot);
         baroboBridge.enableButtonSignals(bot._id);
       }
     }
-    if (connections.wheel !== null) {
-      _ref1 = connections.wheel;
+    if (connections.wheel && connections.wheel !== null) {
+      _ref = connections.wheel;
       _results = [];
-      for (_wheelId in _ref1) {
-        if (!__hasProp.call(_ref1, _wheelId)) continue;
-        registerObject = _ref1[_wheelId];
+      if (wheelSlotCallback === null) {
+        wheelSlotCallback = [];
+      }
+      for (_wheelId in _ref) {
+        // if (!__hasProp.call(_ref, _wheelId)) continue;
+        registerObject = _ref[_wheelId];
         wheelId = parseInt(_wheelId);
         slot = wheelSlot(bot, wheelId, registerObject.callback, registerObject.data);
         baroboBridge.setMotorEventThreshold(bot._id, wheelId, registerObject.distance);
         baroboBridge.motorChanged.connect(slot);
+        wheelSlotCallback.push(slot);
         _results.push(baroboBridge.enableMotorSignals(bot._id));
       }
-      return _results;
     }
+    if (connections.accel && connections.accel !== null) {
+      _ref = connections.accel;
+      accelSlotCallback = accelSlot(bot, _ref.callback, _ref.data);
+      baroboBridge.accelChanged.connect(accelSlotCallback);
+      baroboBridge.enableAccelSignals(bot._id);
+    }
+    if (connections.led && connections.led !== null) {
+      _ref = connections.led;
+      ledCallbacks.push(_ref.callback);
+    }
+    return _results;
   };
 
   this.unregister = function() {
-    baroboBridge.motorChanged.disconnect();
-    baroboBridge.disableMotorSignals(bot._id);
-    baroboBridge.buttonChanged.disconnect();
-    return baroboBridge.disableButtonSignals(bot._id);
+    try {
+      if (wheelSlotCallback && wheelSlotCallback !== null) {
+        baroboBridge.disableMotorSignals(bot._id);
+        for (var a in wheelSlotCallback) {
+          baroboBridge.motorChanged.disconnect(wheelSlotCallback[a]);
+        }
+        wheelSlotCallback = null;
+      }
+    } catch (err) {
+      console.log(err);
+    }
+    try {
+      if (buttonSlotCallback && buttonSlotCallback !== null) {
+        baroboBridge.disableButtonSignals(bot._id);
+        for (var b in buttonSlotCallback) {
+          baroboBridge.buttonChanged.disconnect(buttonSlotCallback[b]);
+        }
+        buttonSlotCallback = null;
+      }
+      
+    } catch (err) {
+      console.log(err);
+    }
+    try {
+      if (accelSlotCallback !== null) {
+        baroboBridge.disableAccelSignals(bot._id);
+        baroboBridge.accelChanged.disconnect(accelSlotCallback);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+    ledCallbacks = [];
   };
 }
 ;function Storage(config) {
@@ -524,8 +1009,31 @@ baroboBridge = (function(main) {
     DBDESC: "Robots Database, used for persistance",
     TABLE: "robots"
   };
-
-  var db = openDatabase(settings.DBNAME, settings.DBVER, settings.DBDESC, settings.DBSIZE);
+  var db = null;
+  try {
+    db = openDatabase(settings.DBNAME, settings.DBVER, settings.DBDESC, settings.DBSIZE);
+  } catch(e) {
+    // TODO implement alternative storage engines.
+    this.remove = function(name, callback) {
+      console.log('OpenDatabase not available');
+    };
+    this.add = function(name, status, callback) {
+      console.log('OpenDatabase not available');
+    };
+    this.getAll = function(callback) {
+      console.log('OpenDatabase not available');
+    };
+    this.updateOrder = function(callback) {
+      console.log('OpenDatabase not available');
+    };
+    this.printRows = function() {
+      console.log('OpenDatabase not available');
+    };
+    this.changePosition = function(currentPosition, newPosition, callback) {
+      console.log('OpenDatabase not available');
+    };
+    return;
+  }
   db.transaction(function(tx) {
     tx.executeSql("CREATE TABLE IF NOT EXISTS " + settings.TABLE + " (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT unique not null, status INTEGER not null, rorder INTEGER not null)",
       [],
@@ -687,6 +1195,419 @@ baroboBridge = (function(main) {
     });
   };
 }
+;var LinkbotControls = (function(parent, doc) {
+	"use strict";
+	var me = parent.knob = parent.knob || {};
+	var knobs = [];
+	var knobsMap = {};
+
+	function mouseUp(e) {
+		for (var i in knobs) {
+			var knob = knobs[i];
+			knob.setDown(false);
+		}
+	}
+	function mouseMove(e) {
+		var clickX = e.clientX || e.pageX;
+		var clickY = e.clientY || e.pageY;
+		for (var i in knobs) {
+			var knob = knobs[i];
+			if (knob.isDown()) {
+				knob.updateXY(clickX, clickY);
+			}
+		}
+	}
+
+	function KnobControl(element) {
+			var inputElement = element;
+			var parent = element.parentElement;
+			var wrapper = document.createElement('div');
+			var imgElement = document.createElement('img');
+			var down = false;
+			var rad2deg = 180/Math.PI;
+			var inputValue = 0;
+			var changeRegister = [];
+
+			wrapper.setAttribute('class', 'linkbotjs-knob-container');
+			parent.replaceChild(wrapper, inputElement);
+			inputElement.setAttribute('value', inputValue);
+			imgElement.setAttribute('width', '100%');
+			imgElement.draggable = false;
+			wrapper.appendChild(imgElement);
+			wrapper.appendChild(inputElement);
+			
+
+			function getPosition(element) {
+			    var xPosition = 0;
+			    var yPosition = 0;
+			  
+			    while(element) {
+			        xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+			        yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
+			        element = element.offsetParent;
+			    }
+			    return { x: xPosition, y: yPosition };
+			}
+
+			
+			
+			return {
+				getKnob: function() {
+					return wrapper;
+				},
+				getKnobInput: function() {
+					return inputElement;
+				},
+				getKnobImage: function() {
+					return imgElement;
+				},
+				setDown: function(value) {
+					down = value;
+				},
+				isDown: function() {
+					return down;
+				},
+				getPosition: function() {
+					return getPosition(wrapper);
+				},
+				getCenter: function() {
+					var position = getPosition(wrapper);
+					var box = [position.x, position.y, wrapper.offsetWidth, wrapper.offsetHeight];
+					var center = { x:(box[0] + (box[2] / 2)),
+						   y:(box[1] + (box[3] / 2))};
+					return center;
+				},
+				updateXY: function(x, y) {
+					var ydiff, xdiff, deg;
+					var position = getPosition(wrapper);
+					var box = [position.x, position.y, wrapper.offsetWidth, wrapper.offsetHeight];
+					var center = { x:(box[0] + (box[2] / 2)),
+						   y:(box[1] + (box[3] / 2))};
+					xdiff = center.x - x;
+					ydiff = center.y - y;
+					deg = ((Math.atan2(ydiff,xdiff) * rad2deg) + 270) % 360;
+					deg = Math.round(deg);
+
+					imgElement.style.transform = "rotate(" + deg + "deg)";
+					imgElement.style.webkitTransform  = "rotate(" + deg + "deg)";
+					inputElement.value = deg;
+					inputValue = deg;
+					for (var i in changeRegister) {
+						changeRegister[i](deg);
+					}
+				},
+				setValue: function(value) {
+					var intValue = parseInt(value);
+					if (isNaN(intValue)) {
+						inputElement.value = inputValue;
+						return;
+					}
+					intValue = intValue % 360;
+					while (intValue < 0) {
+						intValue = 360 + intValue; 
+					}
+					imgElement.style.transform = "rotate(" + intValue + "deg)";
+					imgElement.style.webkitTransform  = "rotate(" + intValue + "deg)";
+					inputValue = intValue;
+					inputElement.value = inputValue;
+					for (var i in changeRegister) {
+						changeRegister[i](intValue);
+					}
+				},
+				getValue: function() {
+					return inputValue;
+				},
+				addChangeCallback: function(callback) {
+					changeRegister.push(callback);
+				}
+			};
+	}
+	me.add = function(param) {
+		var element = null;
+		if (param instanceof HTMLElement) {
+			element = param;
+		} else {
+			element = doc.getElementById(param);
+		}
+		if (!element || element === null) {
+			return;
+		}
+		var knobControl = new KnobControl(element);
+		knobControl.getKnob().addEventListener('mousedown', function(e) {
+			if (e.button === 0) {
+				knobControl.setDown(true);
+			}
+		});
+		knobControl.getKnob().addEventListener('click', function(e) {
+			var clickX = e.clientX || e.pageX;
+			var clickY = e.clientY || e.pageY;
+			knobControl.updateXY(clickX, clickY);
+		});
+		knobControl.getKnobInput().addEventListener('click', function(e) { e.stopPropagation(); }, true);
+		knobControl.getKnobInput().addEventListener('onchange', function(e) {
+		 	knobControl.setValue(e.target.value);
+		});
+		knobControl.getKnobInput().addEventListener('keyup', function(e) {
+			knobControl.setValue(e.target.value);
+		});
+		knobControl.getKnobInput().addEventListener('mousedown', function(e) { e.stopPropagation(); }, true);
+		if (element.id) {
+			knobsMap[element.id] = knobControl;
+		}
+		knobs.push(knobControl);
+	};
+	me.init = function() {
+		doc.addEventListener('mouseup', mouseUp);
+		doc.addEventListener('mousemove', mouseMove);
+		var elements = document.getElementsByClassName('linkbotjs-knob');
+		for (var i = 0; i < elements.length; i++) {
+			me.add(elements[i]);
+		}
+	};
+	me.get = function(id) {
+		return knobsMap[id];
+		
+	};
+	me.getValue = function(id) {
+		var knob = knobsMap[id];
+		if (knob) {
+			return knob.getValue();
+		}
+		
+		return null;
+	};
+	me.addChangeCallback = function(id, callback) {
+		var knob = knobsMap[id];
+		if (knob) {
+			return knob.addChangeCallback(callback);
+		}
+	};
+	return parent;
+}(LinkbotControls || {}, document));
+;var LinkbotControls = (function(parent, doc) {
+	"use strict";
+	parent.slider = parent.slider || {};
+	var me = parent.slider;
+	var sliders = [];
+	var slidersMap = {};
+
+	function mouseMove(e) {
+		var clickX = e.clientX || e.pageX;
+		var clickY = e.clientY || e.pageY;
+		for (var i in sliders) {
+			var slider = sliders[i];
+			if (slider.isDown()) {
+				slider.updateXY(clickX, clickY);
+				if(e.stopPropagation) e.stopPropagation();
+			    if(e.preventDefault) e.preventDefault();
+			    e.cancelBubble=true;
+			    e.returnValue=false;
+			    return false;
+			}
+		}
+	}
+
+	function mouseUp(e) {
+		for (var i in sliders) {
+			var slider = sliders[i];
+			slider.setDown(false);
+		}
+	}
+
+	function SliderControl(element) {
+		var value = 0;
+		var min = 0;
+		var max = 100;
+		var down = false; // mouse down.
+		var changeRegister = [];
+		var type = "int";
+		if (element.dataset.type) {
+			type = element.dataset.type;
+		}
+		if (element.dataset.min) {
+			min = parseInt(element.dataset.min);
+		}
+		if (element.dataset.max) {
+			max = parseInt(element.dataset.max);
+		}
+		var handleElement = document.createElement('span');
+		var vertical = false;
+		if (element.classList.contains('linkbotjs-vslider')) {
+			vertical = true;
+			handleElement.style.top = "0";
+			handleElement.setAttribute('class', 'linkbotjs-vslider-handle');
+		} else {
+			handleElement.setAttribute('class', 'linkbotjs-slider-handle');
+			handleElement.style.left = "0";
+		}
+		var sliderElement = element;
+		sliderElement.innerHTML = "";
+		sliderElement.appendChild(handleElement);
+
+		function getPosition(element) {
+		    var xPosition = 0;
+		    var yPosition = 0;
+		  
+		    while(element) {
+		        xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+		        yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
+		        element = element.offsetParent;
+		    }
+		    return { x: xPosition, y: yPosition };
+		}
+
+		
+		return {
+			getSlider: function() {
+				return sliderElement;
+			},
+			getHandle: function() {
+				return handleElement;
+			},
+			isVertical: function() {
+				return vertical;
+			},
+			isDown: function() {
+				return down;
+			},
+			setDown: function(val) {
+				down = val;
+			},
+			updateXY: function(x, y) {
+				var diff, val, tempValue;
+				var position = getPosition(sliderElement);
+				var box = [position.x, position.y, sliderElement.offsetWidth, sliderElement.offsetHeight];
+				if (vertical) {
+					diff = y - position.y;
+					val = diff / box[3];
+					tempValue = (val * (max - min)) + min;
+					if (tempValue > max) {
+						value = max;
+						handleElement.style.top = '100%';
+					} else if (tempValue < min) {
+						value = min;
+						handleElement.style.top = '0%';
+					} else {
+						handleElement.style.top = (val * 100) + '%';
+						if (type === "int") {
+							value = Math.round(tempValue);
+						} else {
+							value = tempValue;
+						}
+					}
+				} else {
+					diff = x - position.x;
+					val = diff / box[2];
+					tempValue = (val * (max - min)) + min;
+					if (tempValue > max) {
+						value = max;
+						handleElement.style.left = '100%';
+					} else if (tempValue < min) {
+						value = min;
+						handleElement.style.left = '0%';
+						return;
+					} else {
+						handleElement.style.left = (val * 100) + '%';
+						if (type === "int") {
+							value = Math.round(tempValue);
+						} else {
+							value = tempValue;
+						}
+					}
+				}
+				for (var i in changeRegister) {
+					changeRegister[i](value);
+				}
+			},
+			setValue: function(val) {
+				var newValue = 0;
+				if (type === "int") {
+					newValue = parseInt(val);
+				} else if (type == "float") {
+					newValue = parseFloat(val);
+				}
+				
+				var percent;
+				if (vertical) {
+					percent = (newValue - min) / (max - min);
+					handleElement.style.top = (percent * 100) + '%';
+					value = newValue;
+				} else {
+					percent = (newValue - min) / (max - min);
+					handleElement.style.left = (percent * 100) + '%';
+					value = newValue;
+				}
+				for (var i in changeRegister) {
+					changeRegister[i](value);
+				}
+			},
+			getValue: function() {
+				return value;
+			},
+			addChangeCallback: function(callback) {
+				changeRegister.push(callback);
+			}
+		};
+	}
+
+	me.add = function(param) {
+		var element = null;
+		if (param instanceof HTMLElement) {
+			element = param;
+		} else {
+			element = doc.getElementById(param);
+		}
+		if (!element || element === null) {
+			return;
+		}
+		var sliderControl = new SliderControl(element);
+		sliderControl.getSlider().addEventListener('mousedown', function(e) {
+			if (e.button === 0) {
+				sliderControl.setDown(true);
+			}
+		});
+		sliderControl.getSlider().addEventListener('click', function(e) {
+			var clickX = e.clientX || e.pageX;
+			var clickY = e.clientY || e.pageY;
+			sliderControl.updateXY(clickX, clickY);
+		});
+		if (element.id) {
+			slidersMap[element.id] = sliderControl;
+		}
+		sliders.push(sliderControl);
+	};
+
+	me.init = function() {
+		doc.addEventListener('mouseup', mouseUp);
+		doc.addEventListener('mousemove', mouseMove);
+		var elements = document.getElementsByClassName('linkbotjs-vslider');
+		var i = 0;
+		for (i = 0; i < elements.length; i++) {
+			me.add(elements[i]);
+		}
+		elements = document.getElementsByClassName('linkbotjs-slider');
+		for (i = 0; i < elements.length; i++) {
+			me.add(elements[i]);
+		}
+	};
+	me.get = function(id) {
+		return slidersMap[id];
+	};
+	me.getValue = function(id) {
+		var slider = slidersMap[id];
+		if (slider) {
+			return slider.getValue();
+		}
+		return null;
+	};
+	me.addChangeCallback = function(id, callback) {
+		var slider = slidersMap[id];
+		if (slider) {
+			return slider.addChangeCallback(callback);
+		}
+	};
+	return parent;
+}(LinkbotControls || {}, document));
 ;var Linkbots = (function(exports, doc) {
     var manager = new RobotManager(doc);
     var storage = new Storage();
@@ -748,10 +1669,12 @@ baroboBridge = (function(main) {
         return baroboBridge.scan();
     };
     exports.managerElement = function() {
-        return manager.element;
+        console.log('this method is deprecated');
+        return '';
     };
     exports.topNavElement = function() {
-        return manager.topNav;
+        console.log('this method is deprecated');
+        return '';
     };
     exports.acquire = function(n) {
         return manager.acquire(n);
@@ -769,7 +1692,28 @@ baroboBridge = (function(main) {
     exports.managerConnect = function() {
         return manager.connect();
     };
+    exports.setNavTitle = function(title) {
+        var element = doc.getElementById('ljs-top-nav-title');
+        if (element) {
+            element.innerText = title;
+        }
+    };
+    exports.setNavCrumbs = function(crumbs) {
+        var element = doc.getElementById('ljs-top-nav-breadcrumbs');
+        if (element) {
+            element.innerText = crumbs.join(" // ");
+        }
+    };
     exports.storage = storage;
 
+    LinkbotControls.knob.init();
+    LinkbotControls.slider.init();
+
+    // Add Robot Manager and Top Navigation.
+    manager.element.style.top = "75px";
+    doc.body.style.marginTop = "90px";
+    doc.body.appendChild(manager.topNav);
+    doc.body.appendChild(manager.element);
+    
     return exports;
 })(Linkbots || {}, document);

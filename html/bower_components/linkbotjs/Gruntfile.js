@@ -7,7 +7,8 @@ module.exports = function(grunt) {
         separator: ';'
       },
       dist: {
-        src: ['src/barobo-bridge.js', 'src/robot-status.js', 'src/robot-manager.js', 'src/link.js', 'src/storage.js', 'src/main.js'],
+        src: ['src/barobo-bridge.js', 'src/robot-status.js', 'src/robot-manager.js', 'src/link.js', 'src/storage.js',
+         'src/knob-control.js', 'src/slider-control.js', 'src/main.js'],
         dest: 'dist/linkbot.js'
       }
     },
@@ -33,7 +34,8 @@ module.exports = function(grunt) {
       files: ['test/**/*.html']
     },
     jshint: {
-      files: ['Gruntfile.js', 'src/barobo-bridge.js', 'src/robot-status.js', 'src/robot-manager.js', 'src/link.js', 'src/main.js', 'src/storage.js', 'test/**/*.js'],
+      files: ['Gruntfile.js', 'src/barobo-bridge.js', 'src/robot-status.js', 'src/robot-manager.js', 'src/link.js',
+       'src/main.js', 'src/storage.js', 'src/knob-control.js', 'src/slider-control.js', 'test/**/*.js'],
       options: {
         // options here to override JSHint defaults
         globals: {

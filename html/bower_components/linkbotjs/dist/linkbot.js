@@ -1710,10 +1710,27 @@ baroboBridge = (function(main) {
     LinkbotControls.slider.init();
 
     // Add Robot Manager and Top Navigation.
-    manager.element.style.top = "75px";
-    doc.body.style.marginTop = "90px";
-    doc.body.appendChild(manager.topNav);
-    doc.body.appendChild(manager.element);
+    function addRobotManager() {
+        manager.element.style.top = "75px";
+        doc.body.style.marginTop = "90px";
+        doc.body.appendChild(manager.topNav);
+        doc.body.appendChild(manager.element);
+    }
+
+    if(window.attachEvent) {
+        window.attachEvent('onload', addRobotManager);
+    } else {
+        if(window.onload) {
+            var originalOnLoad = window.onload;
+            var newOnLoad = function() {
+                originalOnLoad();
+                addRobotManager();
+            };
+            window.onload = newOnLoad;
+        } else {
+            window.onload = addRobotManager;
+        }
+    }
     
     return exports;
 })(Linkbots || {}, document);

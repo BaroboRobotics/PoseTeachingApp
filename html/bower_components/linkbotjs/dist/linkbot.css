@@ -225,11 +225,16 @@ span.robomgr-right {
 }
 
 #robomgr-top-navigation .robomgr-top-nav-breadcrumbs {
-	color: #ccc;
+	color: #000;
+	font-weight: bold;
+	padding-left: 15px;
 }
 
 #robomgr-top-navigation .robomgr-top-nav-title {
 	font-size: 28px;
+	background-color: #2d2c2c;
+	padding: 5px 15px 16px;
+	color: #fff;
 }
 
 .robomgr--rmBtn {

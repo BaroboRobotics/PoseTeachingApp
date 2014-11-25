@@ -31,14 +31,14 @@
     };
   });
 
-  mod.directive('robotManager', function() {
-    return {
-      restrict: 'E',
-      link: function(scope, elem) {
-        return elem.append(Linkbots.managerElement());
-      }
-    };
-  });
+
+  /*
+  mod.directive('robotManager', ->
+    restrict: 'E'
+    link: (scope, elem) ->
+      elem.append(Linkbots.managerElement())
+  )
+   */
 
   MoveStatus = (function() {
     function MoveStatus(scope) {

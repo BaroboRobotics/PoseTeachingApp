@@ -29,12 +29,13 @@ mod.directive('modifiable', ->
           inputElem.select()
       )
 )
-
+###
 mod.directive('robotManager', ->
   restrict: 'E'
   link: (scope, elem) ->
     elem.append(Linkbots.managerElement())
 )
+###
 
 class MoveStatus
   constructor: (@scope) ->

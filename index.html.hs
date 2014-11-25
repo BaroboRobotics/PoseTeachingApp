@@ -11,6 +11,7 @@ import qualified Text.Blaze.Html5 as H
 import Text.Blaze.Html5.Attributes hiding (label, form, span)
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.String (renderHtml)
+import qualified Text.Blaze.Html.Renderer.Utf8 as BlazeBS
 import qualified Text.Blaze.Internal as Internal
 
 -- The Angular module provides some combinators for using/adding Angular
@@ -62,8 +63,8 @@ codeLn :: HtmlCombr
 codeLn = (>> br)
 
 -- "robotManager" directive
-robotManager :: Html
-robotManager = elemDirective "robot-manager" $ mempty
+-- robotManager :: Html
+-- robotManager = elemDirective "robot-manager" $ mempty
 
 --
 -- main! Generate some html.
@@ -75,25 +76,26 @@ main = writeFile "html/index.html" $ renderHtml $ do
     H.head $ do
       H.title $ "Pose Teaching"
       meta ! httpEquiv "Content-Type" ! content "text/html; charset=utf-8"
-      js "bower_components/linkbotjs/dist/linkbot.js"
-      js "bower_components/angular/angular.js"
-      js "poseTeach.js"
       css "bower_components/bootstrap/dist/css/bootstrap.css"
       css "bower_components/linkbotjs/dist/linkbot.css"
     body ! ngApp "PoseTeaching" ! ngController "actions" $ do
       adminSidebar
       programListingSection
+      js "bower_components/linkbotjs/dist/linkbot.js"
+      js "bower_components/angular/angular.js"
+      js "poseTeach.js"
+      analytics
 
 adminSidebar =
-  "sidebar" .$ do
-    lllogo
+  "sidebar container" .$ do
+--    lllogo
     appTitle
-    robotManager
+--    robotManager
 
-lllogo =
-  a ! href "/index.html" $
-    img !. "sidebar--logo"
-        ! src "linkbot-labs-ER-logo-200x46px.png"
+-- lllogo =
+--  a ! href "/index.html" $
+--    img !. "sidebar--logo"
+--        ! src "linkbot-labs-ER-logo-200x46px.png"
 
 appTitle =
   h1 !. "sidebar--title" $ "Pose Teaching"
@@ -183,3 +185,13 @@ setSpeeds = do
       modNum "m.speeds[$index][1]" >> ", "
       modNum "m.speeds[$index][2]" >> ")"
   codeLn ""
+
+
+analytics = H.script . H.preEscapedToHtml . T.concat $
+    [ "(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){"
+    , "(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),"
+    , "m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)"
+    , "})(window,document,'script','//www.google-analytics.com/analytics.js','ga');"
+    , "ga('create', 'UA-22263798-3', 'auto');"
+    , "ga('send', 'pageview');"
+    ]

@@ -1,13 +1,13 @@
 {
   "name": "LinkbotJS",
+  "version": "0.1.1",
   "authors": [
     "Barobo, Inc."
   ],
   "description": "Javascript API for interacting with Barobo robots",
   "main": [
     "./dist/linkbot.js",
-    "./dist/linkbot.css"
-  ],
+    "./dist/linkbot.css"],
   "keywords": [
     "barobo",
     "linkbot",
@@ -16,6 +16,17 @@
   "license": "MIT",
   "homepage": "http://baroborobotics.github.io/LinkbotJS/",
   "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "devDependencies": {
+    "jasmine-jquery": "~2.0.3",
+    "jquery": "~2.1.1"
+  },
   "ignore": [
     "README.md",
     "auto",
@@ -26,18 +37,5 @@
     "package.json",
     "src",
     "test"
-  ],
-  "devDependencies": {
-    "jasmine-jquery": "~2.0.3",
-    "jquery": "~2.1.1"
-  },
-  "_release": "5aae783b02",
-  "_resolution": {
-    "type": "branch",
-    "branch": "develop",
-    "commit": "5aae783b0269c649ecfffae2982404af4436ee76"
-  },
-  "_source": "git://github.com/BaroboRobotics/LinkbotJS.git",
-  "_target": "develop",
-  "_originalSource": "BaroboRobotics/LinkbotJS"
+  ]
 }

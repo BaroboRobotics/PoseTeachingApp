@@ -4,6 +4,11 @@ html {
 *, *:before, *:after {
   box-sizing: inherit;
 }
+input[type=color] {
+	background-color: buttonface;
+	border: 1px solid #a9a9a9;
+	padding: 1px 2px;
+}
 #robomgr-container {
 	z-index: 1000;
 	background-color: transparent;
@@ -228,6 +233,7 @@ span.robomgr-right {
 	color: #000;
 	font-weight: bold;
 	padding-left: 15px;
+	font-size: 14px;
 }
 
 #robomgr-top-navigation .robomgr-top-nav-title {
@@ -263,12 +269,11 @@ span.robomgr-right {
 
 #robomgr-control-panel {
 	position: fixed;
-	top: 50%;
-	left: 50%;
+	top: 0;
+	left: 270px;
 	width: 600px;
-	height: 776px;
-	margin-top: -388px;
-	margin-left: -300px;
+	max-height: 776px;
+	margin-top: 0;
 	background-color: #202020;
 	color: white;
 	z-index: 2000;
@@ -371,7 +376,7 @@ span.robomgr-right {
 #robomgr-overlay {
     position:fixed;
     top:0;
-    left:0;
+    left:270px;
     right:0;
     bottom:0;
     z-index:1500;

@@ -4,6 +4,11 @@ html {
 *, *:before, *:after {
   box-sizing: inherit;
 }
+input[type=color] {
+	background-color: buttonface;
+	border: 1px solid #a9a9a9;
+	padding: 1px 2px;
+}
 #robomgr-container {
 	z-index: 1000;
 	background-color: transparent;
@@ -108,7 +113,7 @@ html {
   	-ms-transition: left .25s ease;
   	transition: left .25s ease;
 }
-#robomgr-container .robomgr-remove-btn, #robomgr-container .robomgr-beep-btn, #robomgr-container .robomgr-cntrpnl-btn {
+#robomgr-container .robomgr-remove-btn, #robomgr-container .robomgr-beep-btn, #robomgr-container .robomgr-cntrpnl-btn, #robomgr-container .robomgr-color-btn {
 	display: inline-block;
 	padding-top: 40px;
 	width: 30px;
@@ -120,6 +125,16 @@ html {
 }
 #robomgr-container .robomgr-beep-btn {
 	background: transparent url('img/beep.png') no-repeat 6px 10px;
+}
+#robomgr-container .robomgr-color-btn {
+	background: transparent url('img/color.png') no-repeat 6px 10px;
+	background: transparent url('img/color.png') no-repeat 6px 10px;
+	border: none;
+	overflow: hidden;
+	padding-top: 50px;
+}
+#robomgr-container .robomgr-color-btn-title {
+	margin-left: -27px;
 }
 #robomgr-container .robomgr-cntrpnl-btn {
 	background: transparent url('img/control-panel.png') no-repeat 10px 10px;
@@ -187,7 +202,7 @@ span.robomgr-right {
 	top: 0;
 	right: 0;
 	left: 0;
-	background-color: #e3e3e3;
+	background-color: #2d2c2c;
 	color: #2da7ca;
 	height: 75px;
 }
@@ -197,7 +212,7 @@ span.robomgr-right {
 	padding-left: 10px;
 	margin: -70px 0 0 265px;
 	height: 75px;
-	background-color: #e3e3e3;
+	background-color: #2d2c2c;
 	width: 100%;
 	float: left;
 	min-width: 300px;
@@ -228,6 +243,7 @@ span.robomgr-right {
 	color: #000;
 	font-weight: bold;
 	padding-left: 15px;
+	font-size: 14px;
 }
 
 #robomgr-top-navigation .robomgr-top-nav-title {
@@ -263,12 +279,11 @@ span.robomgr-right {
 
 #robomgr-control-panel {
 	position: fixed;
-	top: 50%;
-	left: 50%;
+	top: 75px;
+	left: 270px;
 	width: 600px;
-	height: 776px;
-	margin-top: -388px;
-	margin-left: -300px;
+	max-height: 776px;
+	margin-top: 0;
 	background-color: #202020;
 	color: white;
 	z-index: 2000;
@@ -371,7 +386,7 @@ span.robomgr-right {
 #robomgr-overlay {
     position:fixed;
     top:0;
-    left:0;
+    left:270px;
     right:0;
     bottom:0;
     z-index:1500;

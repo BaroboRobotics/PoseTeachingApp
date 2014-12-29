@@ -102,6 +102,9 @@ mod.controller('actions', ['$scope', ($scope) ->
     )
 
   setupRobot = (robo) ->
+    btnPower: robo.BUTTON_POWER
+    btnA: robo.BUTTON_A
+    btnB: robo.BUTTON_B
     robo.stop()
     $scope.m.robots.push robo
     $scope.m.speeds.push $scope.m.defaultSpeeds.slice()
@@ -132,9 +135,9 @@ mod.controller('actions', ['$scope', ($scope) ->
 
     robo.register(
       button:
-        0: callback: -> $scope.$apply(-> addPose())
-        1: callback: -> $scope.$apply(-> $scope.toggleRun())
-        2: callback: -> $scope.$apply(-> deletePose())
+        btnA: callback: -> $scope.$apply(-> addPose())
+        btnB: callback: -> $scope.$apply(-> $scope.toggleRun())
+        btnPower: callback: -> $scope.$apply(-> deletePose())
     )
 
   pauseProgram = () ->

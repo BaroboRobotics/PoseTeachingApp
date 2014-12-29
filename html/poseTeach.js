@@ -126,6 +126,11 @@
       };
       setupRobot = function(robo) {
         var addPose, deletePose;
+        ({
+          btnPower: robo.BUTTON_POWER,
+          btnA: robo.BUTTON_A,
+          btnB: robo.BUTTON_B
+        });
         robo.stop();
         $scope.m.robots.push(robo);
         $scope.m.speeds.push($scope.m.defaultSpeeds.slice());
@@ -151,21 +156,21 @@
         };
         return robo.register({
           button: {
-            0: {
+            btnA: {
               callback: function() {
                 return $scope.$apply(function() {
                   return addPose();
                 });
               }
             },
-            1: {
+            btnB: {
               callback: function() {
                 return $scope.$apply(function() {
                   return $scope.toggleRun();
                 });
               }
             },
-            2: {
+            btnPower: {
               callback: function() {
                 return $scope.$apply(function() {
                   return deletePose();

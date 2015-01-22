@@ -96,10 +96,21 @@ mod.controller('actions', ['$scope', ($scope) ->
   # Subfunctions
   ##
 
-  allRobotWheelPositions = ->
-    $scope.m.robots.map(
-      (r) -> r.wheelPositions().map(oneDecimal)
-    )
+  allRobotWheelPositions = (callback) ->
+    robots = $scope.m.robots.slice();
+    values = []
+    
+    f = ->
+      if (robots.length > 0)
+        r = robots.shift();  
+        r.wheelPositions((v) ->
+          values.push(v.values.map(oneDecimal));
+          f()
+        )
+      else
+        callback(values)
+    f()
+
 
   setupRobot = (robo) ->
     robo.stop()
@@ -108,15 +119,20 @@ mod.controller('actions', ['$scope', ($scope) ->
 
     addPose = ->
       if ! $scope.m.moveStatus.running()
-        if $scope.m.moveStatus.stopped()
-          $scope.m.poses.push allRobotWheelPositions()
-        else
-          $scope.m.poses.splice(
-            $scope.m.moveStatus.index + 1
-            0
-            allRobotWheelPositions()
+        allRobotWheelPositions((values) ->
+          $scope.$apply(() ->
+            if $scope.m.moveStatus.stopped()
+              $scope.m.poses.push values
+            else
+              $scope.m.poses.splice(
+                $scope.m.moveStatus.index + 1
+                0
+                values
+              )
+              $scope.m.moveStatus.incrementIndex()
           )
-          $scope.m.moveStatus.incrementIndex()
+        )
+        
 
     deletePose = ->
       if ! $scope.m.moveStatus.running()
@@ -152,9 +168,11 @@ mod.controller('actions', ['$scope', ($scope) ->
       robots
       $scope.m.speeds
     )
-
-    curPositions = allRobotWheelPositions()
-    move(curPositions)
+    allRobotWheelPositions((values) ->
+      move(values)
+    )
+#    curPositions = allRobotWheelPositions()
+#    move(curPositions)
 
   ##
   # Sub functions

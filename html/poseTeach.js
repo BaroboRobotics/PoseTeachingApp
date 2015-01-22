@@ -118,10 +118,23 @@
           return runProgram();
         }
       };
-      allRobotWheelPositions = function() {
-        return $scope.m.robots.map(function(r) {
-          return r.wheelPositions().map(oneDecimal);
-        });
+      allRobotWheelPositions = function(callback) {
+        var f, robots, values;
+        robots = $scope.m.robots.slice();
+        values = [];
+        f = function() {
+          var r;
+          if (robots.length > 0) {
+            r = robots.shift();
+            return r.wheelPositions(function(v) {
+              values.push(v.values.map(oneDecimal));
+              return f();
+            });
+          } else {
+            return callback(values);
+          }
+        };
+        return f();
       };
       setupRobot = function(robo) {
         var addPose, deletePose, regObj;
@@ -130,12 +143,16 @@
         $scope.m.speeds.push($scope.m.defaultSpeeds.slice());
         addPose = function() {
           if (!$scope.m.moveStatus.running()) {
-            if ($scope.m.moveStatus.stopped()) {
-              return $scope.m.poses.push(allRobotWheelPositions());
-            } else {
-              $scope.m.poses.splice($scope.m.moveStatus.index + 1, 0, allRobotWheelPositions());
-              return $scope.m.moveStatus.incrementIndex();
-            }
+            return allRobotWheelPositions(function(values) {
+              return $scope.$apply(function() {
+                if ($scope.m.moveStatus.stopped()) {
+                  return $scope.m.poses.push(values);
+                } else {
+                  $scope.m.poses.splice($scope.m.moveStatus.index + 1, 0, values);
+                  return $scope.m.moveStatus.incrementIndex();
+                }
+              });
+            });
           }
         };
         deletePose = function() {
@@ -185,7 +202,7 @@
         return $scope.m.moveStatus.stop();
       };
       runProgram = function() {
-        var curPositions, robots;
+        var robots;
         robots = $scope.m.robots;
         if (!(robots.length > 0 && $scope.m.poses.length > 0)) {
           return;
@@ -193,8 +210,9 @@
         zip(function(r, s) {
           return r.angularSpeed.apply(r, s);
         }, robots, $scope.m.speeds);
-        curPositions = allRobotWheelPositions();
-        return move(curPositions);
+        return allRobotWheelPositions(function(values) {
+          return move(values);
+        });
       };
       move = function(curPositions) {
         var dT, destPositions, idx, nextCmd;

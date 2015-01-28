@@ -109,10 +109,12 @@ programListingSection =
 
 programControls =
   "program-controls" .$ do
+    button ! ngClick "addRobot()" $ "Add a Robot"
+    button ! ngClick "recordPose()" $ "Record"
     button ! ngClick "toggleRun()" $ do
       "{{ m.moveStatus.running() ? 'Pause' : 'Run' }}"
     button ! ngClick "clearProgram()" $ "Clear"
-    button ! ngClick "addRobot()" $ "Add a Robot"
+
 
 programCode =
   pre !. "program-code" ! A.style "margin: 0" $ do

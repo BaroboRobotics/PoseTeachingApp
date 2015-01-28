@@ -82,6 +82,9 @@ mod.controller('actions', ['$scope', ($scope) ->
       setupRobot(x.robots[0])
       $scope.clearProgram()
 
+  $scope.recordPose = () ->
+    doRecordPose()
+
   $scope.clearProgram = () ->
     $scope.m.poses = []
     $scope.m.moveStatus.stop()
@@ -111,6 +114,21 @@ mod.controller('actions', ['$scope', ($scope) ->
         callback(values)
     f()
 
+  doRecordPose = ->
+    if ! $scope.m.moveStatus.running()
+      allRobotWheelPositions((values) ->
+        $scope.$apply(() ->
+          if $scope.m.moveStatus.stopped()
+            $scope.m.poses.push values
+          else
+            $scope.m.poses.splice(
+              $scope.m.moveStatus.index + 1
+              0
+              values
+            )
+            $scope.m.moveStatus.incrementIndex()
+        )
+      )
 
   setupRobot = (robo) ->
     robo.stop()

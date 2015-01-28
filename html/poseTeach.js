@@ -88,7 +88,7 @@
 
   mod.controller('actions', [
     '$scope', function($scope) {
-      var allRobotWheelPositions, max_dTs, move, moveRobots, pauseProgram, runProgram, setupRobot, stopProgram;
+      var allRobotWheelPositions, doRecordPose, max_dTs, move, moveRobots, pauseProgram, runProgram, setupRobot, stopProgram;
       $scope.m = {
         loop: true,
         poses: [],
@@ -106,6 +106,9 @@
           setupRobot(x.robots[0]);
           return $scope.clearProgram();
         }
+      };
+      $scope.recordPose = function() {
+        return doRecordPose();
       };
       $scope.clearProgram = function() {
         $scope.m.poses = [];
@@ -135,6 +138,20 @@
           }
         };
         return f();
+      };
+      doRecordPose = function() {
+        if (!$scope.m.moveStatus.running()) {
+          return allRobotWheelPositions(function(values) {
+            return $scope.$apply(function() {
+              if ($scope.m.moveStatus.stopped()) {
+                return $scope.m.poses.push(values);
+              } else {
+                $scope.m.poses.splice($scope.m.moveStatus.index + 1, 0, values);
+                return $scope.m.moveStatus.incrementIndex();
+              }
+            });
+          });
+        }
       };
       setupRobot = function(robo) {
         var addPose, deletePose, regObj;

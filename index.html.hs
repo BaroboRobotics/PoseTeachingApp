@@ -77,11 +77,11 @@ main = writeFile "html/index.html" $ renderHtml $ do
       H.title $ "Pose Coding"
       meta ! httpEquiv "Content-Type" ! content "text/html; charset=utf-8"
       css "bower_components/bootstrap/dist/css/bootstrap.css"
-      css "http://linkbotlabs.com/libraries/linkbotjs/linkbot.css"
+      css "/linkbotjs/linkbot.css"
     body ! ngApp "PoseTeaching" ! ngController "actions" $ do
       adminSidebar
       programListingSection
-      js "http://linkbotlabs.com/libraries/linkbotjs/linkbot.js"
+      js "/linkbotjs/linkbot.min.js"
       js "bower_components/angular/angular.js"
       js "poseTeach.js"
       analytics
